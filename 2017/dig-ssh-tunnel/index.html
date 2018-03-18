@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>ssh 隧道挖掘艺术 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="">
+    <meta name="description" content="我们有一台公网的跳板机，但是我们的开发机不能有外网网卡(你看看，一刀切的厉害)。所以只好用 ssh 隧道大法。 基本架构如下：1234567                                                       VPC                              +-------------+          +----------------">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ssh 隧道挖掘艺术">
+<meta property="og:url" content="https://blog.gobyoung.com/2017/dig-ssh-tunnel/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="我们有一台公网的跳板机，但是我们的开发机不能有外网网卡(你看看，一刀切的厉害)。所以只好用 ssh 隧道大法。 基本架构如下：1234567                                                       VPC                              +-------------+          +----------------">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ssh 隧道挖掘艺术">
+<meta name="twitter:description" content="我们有一台公网的跳板机，但是我们的开发机不能有外网网卡(你看看，一刀切的厉害)。所以只好用 ssh 隧道大法。 基本架构如下：1234567                                                       VPC                              +-------------+          +----------------">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">ssh 隧道挖掘艺术</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">ssh 隧道挖掘艺术</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-09-19T10:22:04.000Z" itemprop="datePublished" class="page-time">
+  2017-09-19
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Connect-a-host-behinds-the-firewall"><span class="post-toc-number">1.</span> <span class="post-toc-text">Connect a host behinds the firewall</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Create-a-local-proxy-upon-a-tunnel"><span class="post-toc-number">2.</span> <span class="post-toc-text">Create a local proxy upon a tunnel</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Mapping-local-port-to-remote"><span class="post-toc-number">3.</span> <span class="post-toc-text">Mapping local port to remote</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-dig-ssh-tunnel"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">ssh 隧道挖掘艺术</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-09-19 18:22:04" datetime="2017-09-19T10:22:04.000Z"  itemprop="datePublished">2017-09-19</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>我们有一台公网的跳板机，但是我们的开发机不能有外网网卡(你看看，一刀切的厉害)。<br>所以只好用 ssh 隧道大法。</p>
+<p>基本架构如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">                                                       VPC</span><br><span class="line">                              +-------------+          +---------------------------+</span><br><span class="line">+-------------+               |             |          |  +-----+ +-----+ +-----+  |</span><br><span class="line">|             |               | Jump Server |          |  |Host | |Host | |Host |  |</span><br><span class="line">|  Local PC   +-------------&gt; |   (Proxy)   | &lt;--------+  | A   | | B   | | C   |  |</span><br><span class="line">|             |               |             |          |  +-----+ +-----+ +-----+  |</span><br><span class="line">+-------------+               +-------------+          +---------------------------+</span><br></pre></td></tr></table></figure></p>
+<h1 id="Connect-a-host-behinds-the-firewall"><a href="#Connect-a-host-behinds-the-firewall" class="headerlink" title="Connect a host behinds the firewall"></a>Connect a host behinds the firewall</h1><p>首先我的机器是在防火墙后面，没有公网 IP，每次登陆只能使用 VPN。所幸的是防火墙对 Ingress 控制比较严格， egress 比较松。所以我们可以在某次使用 VPN 登陆 Host 之后，通过反向隧道，打开一条隧道，后面我们的通信都通过这个隧道进行。</p>
+<p>在 host-a 中执行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">goby@host-a $ ssh -p 2048 goby@proxy -fCNR 20480:localhost:2048</span><br></pre></td></tr></table></figure></p>
+<p>意思就是，我们在 host-a 中，将本地的 2048(ssh 端口) 映射到远端 proxy 的 20480 端口。现在 proxy 和 host-a 之间就有了一条隧道：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">                                             VPC</span><br><span class="line">                   +-------------+          +---------------------------+</span><br><span class="line">+-----------+      |             | &lt;--------+  +-----+ +-----+ +-----+  |</span><br><span class="line">|           |      | Jump Server |  Remote  |  |Host | |Host | |Host |  |</span><br><span class="line">|  Local PC +----&gt; |   (Proxy)   |  Forward |  | A   | | B   | | C   |  |</span><br><span class="line">|           |      |             | &lt;--------+  +-----+ +-----+ +-----+  |</span><br><span class="line">+-----------+      +-------------+          +---------------------------+</span><br></pre></td></tr></table></figure></p>
+<p>那么我们在 proxy 上就能通过 20480 访问 host-a。<br>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">goby@goby-thhinkpad $ ssh -p 2048 goby@proxy ssh -p 20480 goby@localhost</span><br></pre></td></tr></table></figure></p>
+<p>如果我们在防火墙后有 N 台机器，都通过这种方式也太恶心了，怎么办？我们只好把 host-a 也当成第二层跳板机，通过前面创建的隧道。</p>
+<p>所以，我可以在本地启动 ssh-agent，通过 Forward Agent 将本地 key 带过去。例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">goby@goby-thhinkpad $ ssh -A -p 2048 goby@proxy ssh -A -p 20480 goby@localhost</span><br><span class="line">goby@host-a $ ssh goby@host-k8s</span><br><span class="line">goby@host-k8s $</span><br></pre></td></tr></table></figure></p>
+<p>熟练使用 ssh_config 的，完全可以将上面合并掉，在本地直接访问，例如我的 debian wheezy 上的 ssh_config：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Host host-a</span><br><span class="line">  Hostname 127.0.0.1</span><br><span class="line">  User goby</span><br><span class="line">  Port 20480</span><br><span class="line">  ForwardAgent yes</span><br><span class="line">  ProxyCommand ssh -q -W %h:%p goby@proxy -p 2048</span><br><span class="line">  # 某些 ssh 版本，例如 mingw64 要用 nc</span><br><span class="line">  # ProxyCommand ssh goby@proxy -p 2048 nc %h %p</span><br></pre></td></tr></table></figure></p>
+<p>本地就能透明访问 host-a 了。</p>
+<h1 id="Create-a-local-proxy-upon-a-tunnel"><a href="#Create-a-local-proxy-upon-a-tunnel" class="headerlink" title="Create a local proxy upon a tunnel"></a>Create a local proxy upon a tunnel</h1><p>如果仅仅是反向代理，好像也没什么。但是如果，我们开发调试时，需要代理，例如 web 页面，从本地直接访问怎么办？我们就需要将 host-a 当成代理了。<br>所以这时候就需要在前面创建的隧道之中，再创建一个动态隧道代理：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">goby@proxy $ ssh -CNfD 17708 goby@localhost -p20480</span><br></pre></td></tr></table></figure>
+<p>那么在跳板机上就会开启 17708 端口，用于动态隧道。最后我们要把跳板机上的 17708 端口映射到我们本地 PC 上，登陆时候使用 L 参数即可：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">goby@goby-thinkpad $ ssh -A -p 2048 goby@proxy -L 7708:localhost:17708</span><br></pre></td></tr></table></figure></p>
+<p>那么我们就可以在本地使用 Chrome， 配置代理 SOCK4: localhost 7708 访问 host-k8s 的 IP。（搭配 Proxy SwitchOmega 使用风味更佳）</p>
+<h1 id="Mapping-local-port-to-remote"><a href="#Mapping-local-port-to-remote" class="headerlink" title="Mapping local port to remote"></a>Mapping local port to remote</h1><p>在这个艰难的环境里，我们还可以做得更多，在这个 Fucking GFW 的局域网，我们开发中经常要用到代理。那么我们的简单想法，就是将本地代理端口映射给开发机。<br>例如本地端口是 8808，想在 host-a 上开一个公共代理12307给其他所有的node用，那么我们个前面的那个ssh_config 添加 RemoteForward 就可以了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Host host-a</span><br><span class="line">  Hostname 127.0.0.1</span><br><span class="line">  User goby</span><br><span class="line">  Port 20480</span><br><span class="line">  ForwardAgent yes</span><br><span class="line">  RemoteForward 12307 localhost:8808</span><br><span class="line">  ProxyCommand ssh -q -W %h:%p goby@proxy -p 2048</span><br><span class="line">  # 某些 ssh 版本，例如 mingw64 要用 nc</span><br><span class="line">  # ProxyCommand ssh goby@proxy -p 2048 nc %h %p</span><br></pre></td></tr></table></figure>
+<p>当然，记得给 host-a 上的 sshd 配置 <code>GatewayPorts yes</code>，否则默认 12307 就监听在 loop 上。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2017/setup-virtual-hexo-with-saas-stack/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Setup Virtual hexo With SaaS stack</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/dynamic-tracing-go-program/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Dynamic tracing Go program</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>一步一步写GIS库 1. 基本结构 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tutorial">
+    <meta name="description" content="一般的GIS的程序库和其他应用没什么区别，整个结构大致可以分成三部分：  数据结构 数据组织 数据渲染  数据结构数据结构从根本分为矢量和栅格两种类型。 栅格对于栅格，因为移动设备关系，不太可能加载遥感数据，因此可能就是普通的格网+纹理贴图方式解决 ( Texture )，又因我们地图要缩放，所以需要组织不同缩放级别下的数据，因此需要 LOD( Level of Detail ) 和四叉树 ( Q">
+<meta name="keywords" content="GIS, tutorial">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一步一步写GIS库 1. 基本结构">
+<meta property="og:url" content="https://blog.gobyoung.com/2013/write-gis-lib-1/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="一般的GIS的程序库和其他应用没什么区别，整个结构大致可以分成三部分：  数据结构 数据组织 数据渲染  数据结构数据结构从根本分为矢量和栅格两种类型。 栅格对于栅格，因为移动设备关系，不太可能加载遥感数据，因此可能就是普通的格网+纹理贴图方式解决 ( Texture )，又因我们地图要缩放，所以需要组织不同缩放级别下的数据，因此需要 LOD( Level of Detail ) 和四叉树 ( Q">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一步一步写GIS库 1. 基本结构">
+<meta name="twitter:description" content="一般的GIS的程序库和其他应用没什么区别，整个结构大致可以分成三部分：  数据结构 数据组织 数据渲染  数据结构数据结构从根本分为矢量和栅格两种类型。 栅格对于栅格，因为移动设备关系，不太可能加载遥感数据，因此可能就是普通的格网+纹理贴图方式解决 ( Texture )，又因我们地图要缩放，所以需要组织不同缩放级别下的数据，因此需要 LOD( Level of Detail ) 和四叉树 ( Q">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">一步一步写GIS库 1. 基本结构</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">一步一步写GIS库 1. 基本结构</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2013-11-29T16:00:00.000Z" itemprop="datePublished" class="page-time">
+  2013-11-29
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#数据结构"><span class="post-toc-number">1.</span> <span class="post-toc-text">数据结构</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#栅格"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">栅格</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#矢量"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">矢量</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#数据组织"><span class="post-toc-number">2.</span> <span class="post-toc-text">数据组织</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#数据渲染"><span class="post-toc-number">3.</span> <span class="post-toc-text">数据渲染</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#总结"><span class="post-toc-number">4.</span> <span class="post-toc-text">总结</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-write-gis-lib-1"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">一步一步写GIS库 1. 基本结构</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2013-11-30 00:00:00" datetime="2013-11-29T16:00:00.000Z"  itemprop="datePublished">2013-11-30</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>一般的GIS的程序库和其他应用没什么区别，整个结构大致可以分成三部分：</p>
+<ol>
+<li>数据结构</li>
+<li>数据组织</li>
+<li>数据渲染</li>
+</ol>
+<h1 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h1><p>数据结构从根本分为<strong>矢量</strong>和<strong>栅格</strong>两种类型。</p>
+<h2 id="栅格"><a href="#栅格" class="headerlink" title="栅格"></a>栅格</h2><p>对于栅格，因为移动设备关系，不太可能加载遥感数据，因此可能就是普通的格网+纹理贴图方式解决 ( Texture )，又因我们地图要缩放，所以需要组织不同缩放级别下的数据，因此需要 LOD( Level of Detail ) 和四叉树 ( QuadTree )。</p>
+<h2 id="矢量"><a href="#矢量" class="headerlink" title="矢量"></a>矢量</h2><p>数据结构从最基本的几何体开始（点、线、面、体），以及集合体加上属性之后形成的要素类型。( Geometry + Feature )</p>
+<p>现在将一个物体在一个空间中表现出来，那么就需要给这个空间建立坐标系（方便起见一般都是直角坐标系或者地心坐标）来表示空间相对关系和大小，平面几何仅仅是小范围可用，对于地理空间来说，地球表面的球面变换尤为重要，因此不仅需要坐标系统（Coordination System），还需要坐标变换系统 ( Project )。</p>
+<h1 id="数据组织"><a href="#数据组织" class="headerlink" title="数据组织"></a>数据组织</h1><p>为了方便管理，一般会对数据进行分层，比如我们常见的地图应用中，从上往下有：兴趣点 ( POI: Point of Interesting )、地标标注（Annotation）、查询数据（路线、交通流量等）、线状地物（道路网、行政边界等）、面状地物（行政区域、建筑物）、栅格底图。分层管理有个好处就是可以进行层过滤，简化数据的组织难度，方便渲染。</p>
+<p>以上几种的图层可以大致分为三类： </p>
+<ol>
+<li>标注层（Annotation Layer）：矢量文字的渲染</li>
+<li>矢量层（Vector Layer）：矢量数据</li>
+<li>栅格层（Tiled Layer）：切割成规则瓦片的栅格图所在的层</li>
+</ol>
+<p>对于矢量层， 矢量数据类型很多，因此可以对矢量数据进行归类管理，即从数据个体 –&gt; 数据类(Class) –&gt; 数据集(Set)。</p>
+<h1 id="数据渲染"><a href="#数据渲染" class="headerlink" title="数据渲染"></a>数据渲染</h1><p>数据渲染可能根据不同数据类型渲染，基础的就是颜色（Color）、纹理（Texture）、光线（Lighting）、着色器（Shader），基本可以看成是OpenGL  ES的问题了。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>数据类型有：</p>
+<ol>
+<li>Vertor (2-3位，用来表示Vertex)</li>
+<li>Geometry ( Point、Polyline、Polygon )</li>
+<li>Feature (Geometry +Fields)</li>
+<li>FeatureClass ( Multi-Feature )</li>
+<li>FeatureSet (Multi-FeatureClass)</li>
+<li>CoordSystem</li>
+<li>QuadTree</li>
+<li>Texture</li>
+</ol>
+<p>数据组织有：</p>
+<ol>
+<li>Layer</li>
+<li>AnnotationLayer</li>
+<li>VectorLayer</li>
+<li>TiledLayer</li>
+</ol>
+<p>数据渲染差不多就是对OpenGL ES的封装了。</p>
+<p>为了简化整个过程，将使用一些开源库（空间操作、分析），下一篇说说即将用到的一些开源库。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tutorial/">tutorial</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2013/write-gis-lib-0/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">一步一步写GIS库 0. 写在所有之前</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2013/write-gis-lib-2/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">一步一步写GIS库 2.使用的第三方库</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

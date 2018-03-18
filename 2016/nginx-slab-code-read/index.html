@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>nginx 共享内存分配机制探究 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tech">
+    <meta name="description" content="在 nginx 模块开发中，充分使用了 nginx 的共享内存， 以下为 nginx 共享内存机制的总结。 nginx 共享内存结构nginx 共享内存采用 slab 形式分配，类似 Jeff Bonwick 的经典论文[1]，由一个 ngx_shm_zone_t 管理。这个结构主要用于 nginx 启动时初始化过程的上下文传递。其中：  data – 任意指针，创建成功回调方法的上下文 shm">
+<meta name="keywords" content="tech">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginx 共享内存分配机制探究">
+<meta property="og:url" content="https://blog.gobyoung.com/2016/nginx-slab-code-read/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="在 nginx 模块开发中，充分使用了 nginx 的共享内存， 以下为 nginx 共享内存机制的总结。 nginx 共享内存结构nginx 共享内存采用 slab 形式分配，类似 Jeff Bonwick 的经典论文[1]，由一个 ngx_shm_zone_t 管理。这个结构主要用于 nginx 启动时初始化过程的上下文传递。其中：  data – 任意指针，创建成功回调方法的上下文 shm">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/b8368623-703d-4515-8e18-90c7a5eac5a6.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/2367a6a5-cf0c-41cc-a303-0138fa7365c6.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/87184525-3453-4234-83b6-514f4cc2b971.jpg">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="nginx 共享内存分配机制探究">
+<meta name="twitter:description" content="在 nginx 模块开发中，充分使用了 nginx 的共享内存， 以下为 nginx 共享内存机制的总结。 nginx 共享内存结构nginx 共享内存采用 slab 形式分配，类似 Jeff Bonwick 的经典论文[1]，由一个 ngx_shm_zone_t 管理。这个结构主要用于 nginx 启动时初始化过程的上下文传递。其中：  data – 任意指针，创建成功回调方法的上下文 shm">
+<meta name="twitter:image" content="https://blog.gobyoung.com/assets/img/maglev/b8368623-703d-4515-8e18-90c7a5eac5a6.jpg">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">nginx 共享内存分配机制探究</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">nginx 共享内存分配机制探究</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2016-08-08T12:17:33.000Z" itemprop="datePublished" class="page-time">
+  2016-08-08
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#nginx-共享内存结构"><span class="post-toc-number">1.</span> <span class="post-toc-text">nginx 共享内存结构</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#共享内存初始化"><span class="post-toc-number">2.</span> <span class="post-toc-text">共享内存初始化</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#共享内存分配与回收"><span class="post-toc-number">3.</span> <span class="post-toc-text">共享内存分配与回收</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-nginx-slab-code-read"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">nginx 共享内存分配机制探究</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2016-08-08 20:17:33" datetime="2016-08-08T12:17:33.000Z"  itemprop="datePublished">2016-08-08</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>在 nginx 模块开发中，充分使用了 nginx 的共享内存， 以下为 nginx 共享内存机制的总结。</p>
+<h1 id="nginx-共享内存结构"><a href="#nginx-共享内存结构" class="headerlink" title="nginx 共享内存结构"></a>nginx 共享内存结构</h1><p>nginx 共享内存采用 slab 形式分配，类似 Jeff Bonwick 的经典论文[1]，由一个 ngx_shm_zone_t 管理。这个结构主要用于 nginx 启动时初始化过程的上下文传递。其中：</p>
+<ul>
+<li>data – 任意指针，创建成功回调方法的上下文</li>
+<li>shm – ngx_shm_t 对象，这个才是真正保存指向共享内存区指针的对象</li>
+<li>init – 初始化回调方法，在 nginx 主循环中创建好共享区之后，会调用这个方法</li>
+<li>tag – 任意指针，一般是指向创建的模块</li>
+<li>noreuse – 在重新载入时（reload，配置重载或者二进制包替换）是否禁止复用，默认是允许复用。在内置tcp/http 的 upstream zone 中为了让配置起效，会设置成禁止复用。</li>
+</ul>
+<p>nginx 这么设计会因为它将配置读取和资源分配相分离，这样也能防止不同配置之间共享区配置冲突。我们重点关注下 ngx_shm_t 类型。</p>
+<ul>
+<li>ngx_shm_t 分成以下几个部分：</li>
+<li>addr – 分配共享区的首地址，也就是 mmap 的返回值</li>
+<li>size – 共享区大小</li>
+<li>name – 共享区名称</li>
+<li>log – 日志对象，用于共享内存的日志，一般就是 cycle 的日志</li>
+</ul>
+<p>ngx_shm_t 的分配非常简单，当前系统是否支持匿名内存(MAP_ANONYMOUS)，如果不支持且有 /dev/zero 设备，就会用 /dev/zero 来创建，否则看看是否支持System V shared memory。匿名内存：</p>
+<pre><code>shm-&gt;addr = (u_char*) mmap(NULL, shm-&gt;size, PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
+</code></pre><p>如果是 /dev/zero 方式：</p>
+<pre><code>fd = open(&quot;/dev/zero&quot;)
+shm-&gt;addr = (u_char*) mmap(NULL, shm-&gt;size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+close(fd);
+</code></pre><p>如果是 System V shared memory 的方式：</p>
+<pre><code>id = shmget(IPC_PRIVATE, shm-&gt;size, (SHM_R|SHM_W|IPC_CREAT));
+shm-&gt;addr = shmat(id, NULL, 0);
+shmctl(id, IPC_RMID, NULL);  /* 所有进程解绑后自动销毁 */
+</code></pre><p>接下来我们就需要聚焦在 addr 这个上面了。</p>
+<p>为了方便内存管理和提高分配效率， nginx 在向系统申请到指定的内存之后，就在内存最开始的地方划分一块区域作为 meta 数据区，即 ngx_slab_pool_t。以下为 ngx_slab_pool_t 的结构：</p>
+<ul>
+<li>lock – 非指针，保存 mutex 互斥锁的数据</li>
+<li>min_size – 1 &lt;&lt; min_shift，最小的大小</li>
+<li>min_shift – 3，最小大小的偏移</li>
+<li>pages – ngx_slab_page_t*， 指向页结构元数据</li>
+<li>last – 最后一个页</li>
+<li>free – 可用页，下连着可用页的链表</li>
+<li>start – 共享内存数据区开始地址（实际数据分配位置）</li>
+<li>end – 共享内存结束地址 + 1</li>
+<li>mutex – 用来控制内存分配竞态的互斥量，实际上指向的是lock里的数据，或者文件锁实现的话fd保存文件描述符</li>
+<li>log_ctx – 日志上下文，指向 &amp;zero</li>
+<li>zero – 终止符</li>
+<li>log_nomem – flag, 是否打印无法分配内存信息</li>
+<li>data – 用户数据，用来传递与共享内存相关的上下文</li>
+<li>addr – 共享内存开始地址（就是 shm-&gt;addr）</li>
+</ul>
+<h1 id="共享内存初始化"><a href="#共享内存初始化" class="headerlink" title="共享内存初始化"></a>共享内存初始化</h1><p>对共享内存分页主要有以下两个步骤：</p>
+<ol>
+<li>初始化互斥锁</li>
+</ol>
+<p>现在 nginx 对 IP 的互斥锁实现由两种，首先是如果当前编译器/系统/库支持原子操作，那么就使用相应的实现实现位于共享内存里的互斥锁（即对共享区内的数据块执行 cas，并判断是否支持信号量，支持的话就wait，否则自己 cpu_pause 下不行就调度出去，下一次进来重复上述过程）</p>
+<p>否则利用文件锁来实现 IP 互斥锁(用配置文件中的 lock_file + 共享区名称创建所需的文件)（相应的 API 为 ngx_*lock_fd）。</p>
+<ol>
+<li>页表构建</li>
+</ol>
+<p>在初始化好锁之后，就可以创建页表了。 nginx 的页表结构比较简单，是一个简单的链表：</p>
+<ul>
+<li>slab – slab 标记，不同类型页有不同的作用</li>
+<li>next – 下一个页</li>
+<li>prev – 前一个页</li>
+</ul>
+<p>在实际中，页表是按大小进行组织，小需求(&lt; 0.5pagesize)由前若干个 page(又称为 slot ) 管理，大需求都是连续整页地分配，由第二部分的page 分配。基本如下：</p>
+<p> <img src="/assets/img/maglev/b8368623-703d-4515-8e18-90c7a5eac5a6.jpg" alt="Alt pic"> </p>
+<p>在实际内存中，格式化结果如下：<br>1 级是page，大小等于系统的 pagesize：<br>pages = size / (ngx_pagesize + sizeof(ngx_slab_page_t)) </p>
+<p>如果该页由slot 管理，那么 page 中又分成若干个 chunk， chunk 的大小在不同的slot是不一样的，最小的大小为 min_size 为 8，最大的chunk 为 1024。不同chunk大小的bitmap 表示方法不一样：<br>在初始化时，系统预先计算了一个指针长度能表示整个page 时，chunk刚刚好的大小应该是多大（即ngx_slab_exact_size）。比如在 32 位系统为 128字节， 而 64 位为 64 字节。</p>
+<ol>
+<li>当 chunk 小于 ngx_slab_exact_size时，此时一个指针长度的bitmap无法表示所有chunk状态，所以需要 m 个指针，此时，每个page 前 m 个 uintptr_t 大小的区域都是作为 bitmap 使用，剩余的部分才作为可使用的内存区域， 此时用 slab 来表示每个 chunk 的大小（低四位）；</li>
+<li>当 chunk 刚刚好是 ngx_slab_exact_size 时，这个时候就用 页头的 slab 作为 bitmap 使用；</li>
+<li>当 chunk 大于 ngx_slab_exact_size 时，这时候，至多使用半个指针就能表示 bitmap 了， slab 就被分成两部分，高16/32位表示 bitmap， 低4位表示 log(sizeof(chunk)) （也就是说，chunk 大小不能大于 64K，64位系统的页大小不能超过4M）。</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 获取大小 */</span></span><br><span class="line">n = ngx_pagesize_shift - (page-&gt;slab &amp; NGX_SLAB_SHIFT_MASK);</span><br><span class="line"><span class="comment">/* bitmap 中 后N个1 */</span></span><br><span class="line">n = <span class="number">1</span> &lt;&lt; n;</span><br><span class="line">n = ((<span class="keyword">uintptr_t</span>) <span class="number">1</span> &lt;&lt; n) - <span class="number">1</span>;</span><br><span class="line"><span class="comment">/*移到高位， 此时 mask 就是bitmap中当前选择的位置之前 */</span></span><br><span class="line">mask = n &lt;&lt; NGX_SLAB_MAP_SHIFT;</span><br></pre></td></tr></table></figure>
+<p>如下图：</p>
+<p> <img src="/assets/img/maglev/2367a6a5-cf0c-41cc-a303-0138fa7365c6.jpg" alt="Alt pic"> </p>
+<p>接下来，就利用 mask 查找可用的块，要注意的是，如果当前chunk 分配完了刚好整个页都被用光了，那么需要将这个页从可用页中删除掉（就是从 slot 上解除掉，会不会像个孤页？不会，因为根据被free的地址就能反推得到这个页头，当这个页有chunk被释放时，会被挂回来）。</p>
+<p>当大小需要超过 pagesize/2 的时候， 这时候就跨过 slots， 直接从页头区查找合适的连续空间，以page为单位。这时候大小的信息保存在 slab 中。此时 slab 的最高位表示为连续页的开始，其余部分表示为连续页的个数。如果存在连续页，后续页头的的slab所有位均为1。</p>
+<p>另外又利用prev 指针的低2位来表示该页属于那种类型大小。</p>
+<p>即将可分配内存分成N页，每一页的大小就是系统页大小，然后每一页都有一个ngx_slab_page_t 类型的 meta 数据描述： </p>
+<pre><code>      |&lt;--------------------------------size-----------------------------------&gt;|(end)
+pool_t| (log(pagesize) - log(min_size)) * page|  pages * page| pages * pagesize |
+      |&lt;---------------index0----------------&gt;|&lt;-free/pages  |&lt;-start     last-&gt;|.end
+</code></pre><p>刚开始 free-&gt;next = pages, free-&gt;prev = NULL;   pages-&gt;next = pages-&gt;prev = free;</p>
+<p> <img src="/assets/img/maglev/87184525-3453-4234-83b6-514f4cc2b971.jpg" alt="Alt pic"> </p>
+<h1 id="共享内存分配与回收"><a href="#共享内存分配与回收" class="headerlink" title="共享内存分配与回收"></a>共享内存分配与回收</h1><p>页的分配：</p>
+<p>ngx_slab_alloc_pages 负责分配页表，参数为 pages，即需要多少个页。</p>
+<p>free 的链表保存着可分配的页，每个free 中的 page.slab 表示的是后续连续 page.slab 页都是可用的。这也相当于把链表压缩了下。</p>
+<p>循环查找 free 链表，找到最近可用页，将对应的(连续)页取出，返回给 ngx_slab_alloc。 </p>
+<p>页的回收：</p>
+<p>相应的， ngx_slab_free_pages 负责页的回收，在1.7.2 之前的版本有个问题，就是当程序跑足够久之后，会产生内存碎片，也就是说连续的页会越来越少，直到最后无法再分配大内存。解决办法是直接在回收页的时候合并相邻空闲页就可以了，上代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line">page-&gt;slab = pages--;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (pages) &#123;</span><br><span class="line">    ngx_memzero(&amp;page[<span class="number">1</span>], pages * <span class="keyword">sizeof</span>(<span class="keyword">ngx_slab_page_t</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 下个节点存在，通常都会存在，将自己解除出来即可 */</span></span><br><span class="line"><span class="keyword">if</span> (page-&gt;next) &#123;</span><br><span class="line">    prev =(<span class="keyword">ngx_slab_page_t</span> *) (page-&gt;prev &amp; ~NGX_SLAB_PAGE_MASK);</span><br><span class="line">    prev-&gt;next = page-&gt;next;</span><br><span class="line">    page-&gt;next-&gt;prev = page-&gt;prev;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 连续页最后一片的下一片 */</span></span><br><span class="line">join = page + page-&gt;slab;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (join &lt; pool-&gt;last) &#123;</span><br><span class="line">    type = join-&gt;prev &amp; NGX_SLAB_PAGE_MASK;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( type   == NGX_SLAB_PAGE) &#123;</span><br><span class="line">        <span class="comment">/* 如果连续页连着的也是空白页首页，也在free链表中，那么就可以合并起来  */</span></span><br><span class="line">        <span class="keyword">if</span> (join-&gt;next != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            pages += join-&gt;slab;</span><br><span class="line">            page-&gt;slab += join-&gt;slab;</span><br><span class="line"></span><br><span class="line">            prev = (<span class="keyword">ngx_slab_page_t</span> *) (join-&gt;prev &amp; ~NGX_SLAB_PAGE_MASK);</span><br><span class="line">            prev-&gt;next = join-&gt;next;</span><br><span class="line">            join-&gt;next-&gt;prev = join-&gt;prev;</span><br><span class="line"></span><br><span class="line">            join-&gt;slab = NGX_SLAB_PAGE_FREE;</span><br><span class="line">            join-&gt;next = <span class="literal">NULL</span>;</span><br><span class="line">            join-&gt;prev = NGX_SLAB_PAGE;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 接下来是合并前面的页，被释放的非第一个页 */</span></span><br><span class="line"><span class="keyword">if</span> (page &gt; pool-&gt;pages) &#123;</span><br><span class="line">    join = page - <span class="number">1</span>;</span><br><span class="line">    type = join-&gt;prev &amp; NGX_SLAB_PAGE_MASK;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( type   == NGX_SLAB_PAGE) &#123;</span><br><span class="line">        <span class="comment">/* 如果前一个页是非首页，那么移到它的首页（就是prev 保存的，见后文） */</span></span><br><span class="line">        <span class="keyword">if</span> (join-&gt;slab == NGX_SLAB_PAGE_FREE) &#123;</span><br><span class="line">            join = (<span class="keyword">ngx_slab_page_t</span> *) (join-&gt;prev &amp; ~NGX_SLAB_PAGE_MASK);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/* 同理，将自己合并到前一个空白页的后面 */</span></span><br><span class="line">        <span class="keyword">if</span> (join-&gt;next != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            pages += join-&gt;slab;</span><br><span class="line">            join-&gt;slab += page-&gt;slab;</span><br><span class="line"></span><br><span class="line">            prev = (<span class="keyword">ngx_slab_page_t</span> *) (join-&gt;prev &amp; ~NGX_SLAB_PAGE_MASK);</span><br><span class="line">            prev-&gt;next = join-&gt;next;</span><br><span class="line">            join-&gt;next-&gt;prev = join-&gt;prev;</span><br><span class="line"></span><br><span class="line">            page-&gt;slab = NGX_SLAB_PAGE_FREE;</span><br><span class="line">            page-&gt;next = <span class="literal">NULL</span>;</span><br><span class="line">            page-&gt;prev = NGX_SLAB_PAGE;</span><br><span class="line"></span><br><span class="line">            page = join;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 将页头保存到最后一页的prev中，以合并时快速索引 */</span></span><br><span class="line"><span class="keyword">if</span> (pages) &#123;</span><br><span class="line">    page[pages].prev = (<span class="keyword">uintptr_t</span>) page;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 将空白页插到free 链表最前头 */</span></span><br><span class="line">page-&gt;prev = (<span class="keyword">uintptr_t</span>) &amp;pool-&gt;<span class="built_in">free</span>;</span><br><span class="line">page-&gt;next = pool-&gt;<span class="built_in">free</span>.next;</span><br><span class="line"></span><br><span class="line">page-&gt;next-&gt;prev = (<span class="keyword">uintptr_t</span>) page;</span><br><span class="line"></span><br><span class="line">pool-&gt;<span class="built_in">free</span>.next = page;</span><br></pre></td></tr></table></figure>
+<p>内存分配：</p>
+<p>根据上面的分析，内存分配就比较简单了，首先判断大小，根据大小选择不同的slot or 直接分配：</p>
+<ol>
+<li>大于页的一半，直接进入页的分配，查找满足需求的最大连续页；</li>
+<li>小于页的一半，查找对应的slot，看看slot中有没有可用的页和chunk，没有的话分配一个页，然后查找chunk，并将该页插到slot的链表前头，以方便下一次分配快速查找；当下一次chunk分配不出来了，就把页从slot链表中移除，减少空闲搜索的空间；为了充分利用空间，nginx 恨不得把每个字段掰开来用，所以这种情况又根据bitmap的大小分成三种情况，如上文所述。</li>
+</ol>
+<p>内存回收：</p>
+<p>内存回收同样在两个大同分支中进行，大内存直接把页挂回free 链表中，并且为了减少碎片进行空闲页的合并；小内存则先进性chunk 回收，发现整个页也回收完了就回收页，每回收完就把页挂到 slot 链表中。</p>
+<p>参考文献：</p>
+<ol>
+<li><a href="https://www.usenix.org/legacy/publications/library/proceedings/bos94/full_papers/bonwick.a" target="_blank" rel="noopener">https://www.usenix.org/legacy/publications/library/proceedings/bos94/full_papers/bonwick.a</a></li>
+<li><a href="http://man7.org/training/download/posix_shm_slides.pdf" target="_blank" rel="noopener">http://man7.org/training/download/posix_shm_slides.pdf</a></li>
+<li><a href="https://www.kernel.org/doc/gorman/html/understand/" target="_blank" rel="noopener">https://www.kernel.org/doc/gorman/html/understand/</a></li>
+<li>Memory FAQ <a href="http://landley.net/writing/memory-faq.txt" target="_blank" rel="noopener">http://landley.net/writing/memory-faq.txt</a></li>
+<li>nginx中slab分配器的实现 <a href="http://www.pagefault.info/?p=177" target="_blank" rel="noopener">http://www.pagefault.info/?p=177</a></li>
+</ol>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tech/">tech</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2016/boost-with-cloudflare/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Boost Your Blog with CloudFlare</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2016/maglev-load-balancer-translate/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Google Maglev 翻译</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

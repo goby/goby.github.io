@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>JavaScript Intellisense | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tech">
+    <meta name="description" content="现在的cocos2d-js官方API文档存在比较多的缺失，特别对我这种新手来说，对cocos2d-x 的 API 完全不熟悉，这三天写js都有点头大，经常一个类要先打开官方jsdoc看，没有的话再放狗搜，狗搜到了之后经常是写一行运行一遍，效率齐低。今天下午喝完咖啡突然想起来以前写 ASP.Net 不是可以用 Visual Studio 来做 js 的自动补全吗？ 根据Mads Kristensen">
+<meta name="keywords" content="tech">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript Intellisense">
+<meta property="og:url" content="https://blog.gobyoung.com/2015/javascript-intellisense/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="现在的cocos2d-js官方API文档存在比较多的缺失，特别对我这种新手来说，对cocos2d-x 的 API 完全不熟悉，这三天写js都有点头大，经常一个类要先打开官方jsdoc看，没有的话再放狗搜，狗搜到了之后经常是写一行运行一遍，效率齐低。今天下午喝完咖啡突然想起来以前写 ASP.Net 不是可以用 Visual Studio 来做 js 的自动补全吗？ 根据Mads Kristensen">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JavaScript Intellisense">
+<meta name="twitter:description" content="现在的cocos2d-js官方API文档存在比较多的缺失，特别对我这种新手来说，对cocos2d-x 的 API 完全不熟悉，这三天写js都有点头大，经常一个类要先打开官方jsdoc看，没有的话再放狗搜，狗搜到了之后经常是写一行运行一遍，效率齐低。今天下午喝完咖啡突然想起来以前写 ASP.Net 不是可以用 Visual Studio 来做 js 的自动补全吗？ 根据Mads Kristensen">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">JavaScript Intellisense</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">JavaScript Intellisense</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2015-05-14T15:11:00.000Z" itemprop="datePublished" class="page-time">
+  2015-05-14
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+<article id="post-javascript-intellisense"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">JavaScript Intellisense</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2015-05-14 23:11:00" datetime="2015-05-14T15:11:00.000Z"  itemprop="datePublished">2015-05-14</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>现在的cocos2d-js官方API文档存在比较多的缺失，特别对我这种新手来说，对cocos2d-x 的 API 完全不熟悉，这三天写js都有点头大，经常一个类要先打开官方jsdoc看，没有的话再放狗搜，狗搜到了之后经常是写一行运行一遍，效率齐低。今天下午喝完咖啡突然想起来以前写 ASP.Net 不是可以用 Visual Studio 来做 js 的自动补全吗？</p>
+<p>根据Mads Kristensen（VS web code editor成员）的说法是当时考虑了三种方式[^Mads]：</p>
+<ol>
+<li>为所有的js的文件做索引，显然这种缺点非常明显，就是性能会成为瓶颈的，而且会有很多干扰选项</li>
+<li>只索引 HTML 中 <code>&lt;script&gt;</code> 中的内容，这种能够减少非常多的负担而且能够符合一部分Web开发需求，但是假如说只写js怎么办？难道弄到一个HTML 中去？</li>
+<li>显然，准确的方式应该是寻求一种和 using 或者 #include 的方式</li>
+</ol>
+<p>最后，他们决定使用如下注释的方式（天啊撸不知道vc会不会像喷golang那样喷VS）：</p>
+<pre><code>/// &lt;reference path=&quot;../app/respond.js&quot; /&gt;
+</code></pre><p>就可以像using 那样根据引入的模块提示了（可以说VS的 Intellisense 真是甩其他IDE几条街），甚至可以直接从 Solution Explorer 中把 .js 拖到打开的 .js 自动完成reference，如我手残者的福音啊。</p>
+<p>但是这个时候欲求不满的用户又叕提出需求了，假如我有几个公共的 js 需要引用怎么办？难道要我蛋疼到每个文件写之前都 reference 一次吗？于是他们在开发 VS2012 的时候就新加入了个 _references.js 的文件，只要被添加到这个文件的 .js 都默认被所有的 .js 引用。那么问题来了， _references.js 该放在哪里？ 放在根目录下肯定不合适啊，于是规定放在 ~/Scripts/ 下。 但是用户又会说，我喜欢放在 js/ 下呢？放在 res/js/ 下呢？</p>
+<p>于是又有了选择，咱们可以在工具–&gt;选项里配置，这里有个快捷键：Ctrl+Q，就可以搜索选项了！真棒！</p>
+<p>终于我们绕了一个大弯，如何让 VS 的 javascript editor 支持 cocos2d-js 的智能提示呢？<br>简单啊，我们新建个Web 工程，把文件以 link 方式添加进来，然后用 everything 把所有的js都扔进来就行了。于是就可以像下面这样：</p>
+<p>![JavaScript Intellisense][ji]<br>[ji]: [[!!images/js/js-intellisense.png]] “Look”</p>
+<p>太棒了！！</p>
+<p>等等，前段时间巨硬不是推出了前端的福音、Mac 软狗欢呼雀跃、即将一统江湖的神兵利器吗？没错就是 Visual Studio Code 怎么用？</p>
+<p>其实和上面的方式就是一样的:-) 只要把 _references.js 放在 当前folder 的ROOT 下就行了。<br><em>不过在我的8M js 面前 Code崩溃了哇哈哈哈哈哈哈哈</em></p>
+<p>![lol][]<br>[lol]: [[!!images/js/lol.png]] “哈哈哈哈哈哈哈”</p>
+<p>[^Mads]: <a href="http://madskristensen.net/post/the-story-behind-_referencesjs" target="_blank" rel="noopener">The Story Behind _References.js</a></p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tech/">tech</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2015/how-synproxy-works/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">SynProxy 工作原理</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2015/javascript-bind-call-and-apply/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">JavaScript bind 探究</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

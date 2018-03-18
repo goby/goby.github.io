@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>Nginx 模块开发 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tech">
+    <meta name="description" content="使用 OpenResty – 使用lua语言 使用原生 – 直接开发第三方模块  Emiller’s Guide To Nginx Module Developmenthttp://www.evanmiller.org/nginx-modules-guide.html Emiller’s Advanced Topics In Nginx Module Developmenthttp://www.">
+<meta name="keywords" content="tech">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx 模块开发">
+<meta property="og:url" content="https://blog.gobyoung.com/2015/nginx-module-learn-note/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="使用 OpenResty – 使用lua语言 使用原生 – 直接开发第三方模块  Emiller’s Guide To Nginx Module Developmenthttp://www.evanmiller.org/nginx-modules-guide.html Emiller’s Advanced Topics In Nginx Module Developmenthttp://www.">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nginx 模块开发">
+<meta name="twitter:description" content="使用 OpenResty – 使用lua语言 使用原生 – 直接开发第三方模块  Emiller’s Guide To Nginx Module Developmenthttp://www.evanmiller.org/nginx-modules-guide.html Emiller’s Advanced Topics In Nginx Module Developmenthttp://www.">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Nginx 模块开发</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Nginx 模块开发</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2015-12-17T11:33:54.000Z" itemprop="datePublished" class="page-time">
+  2015-12-17
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Nginx-模块的组成部分"><span class="post-toc-number">1.</span> <span class="post-toc-text">Nginx 模块的组成部分</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-配置部分"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">1. 配置部分</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-指令部分"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">2. 指令部分</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-模块上下文"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">3. 模块上下文</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-模块定义"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">4. 模块定义</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-模块安装"><span class="post-toc-number">1.5.</span> <span class="post-toc-text">5. 模块安装</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Handlers"><span class="post-toc-number">2.</span> <span class="post-toc-text">Handlers</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-Handler-解析"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">1. Handler 解析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#获取配置"><span class="post-toc-number">2.1.1.</span> <span class="post-toc-text">获取配置</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#产生响应"><span class="post-toc-number">2.1.2.</span> <span class="post-toc-text">产生响应</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#发送Headers"><span class="post-toc-number">2.1.3.</span> <span class="post-toc-text">发送Headers</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#TEST-MathJax"><span class="post-toc-number">2.1.4.</span> <span class="post-toc-text">TEST MathJax</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-nginx-module-learn-note"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">Nginx 模块开发</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2015-12-17 19:33:54" datetime="2015-12-17T11:33:54.000Z"  itemprop="datePublished">2015-12-17</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <ol>
+<li>使用 OpenResty – 使用lua语言</li>
+<li>使用原生 – 直接开发第三方模块</li>
+</ol>
+<p>Emiller’s Guide To Nginx Module Development<br><a href="http://www.evanmiller.org/nginx-modules-guide.html" target="_blank" rel="noopener">http://www.evanmiller.org/nginx-modules-guide.html</a></p>
+<p>Emiller’s Advanced Topics In Nginx Module Development<br><a href="http://www.evanmiller.org/nginx-modules-guide-advanced.html" target="_blank" rel="noopener">http://www.evanmiller.org/nginx-modules-guide-advanced.html</a></p>
+<p>Handlers – 处理器，处理请求和产生结果<br>Filters – 过滤器，过滤Handler 产生的结果<br>Load-Balancers – 负载均衡器，反向代理的时候用到</p>
+<p>一个模块是如何工作的？<br>通常，在nginx启动时，所有的模块都有机会根据配置加载到程序中，<br>如果有多个 Handler 同时附加到某个位置，则只有一个可以成功载入。</p>
+<p>Handler可能返回三种值：</p>
+<ol>
+<li>所有均正确载入</li>
+<li>有错误但还能工作</li>
+<li>无法工作</li>
+</ol>
+<p>如果Handler没有错误，那么Filter就会接着处理Handler的输出。<br>多个过滤器可以一起协同工作，比如响应结果就能压缩和分块。<br>Filter以经典的”Chain of Responsibility” 模式工作。和 webpy 的 middleware 一样。</p>
+<p>Filter不会等到上一个处理均结束才开始，而是类似于Unix的管道一样，<br>以 buffer形式（流水线），可以理解成流式的。</p>
+<p>一个处理周期如下：</p>
+<ol>
+<li>客户端发送HTTP请求</li>
+<li>Nginx选择合理的Handler处理（根据配置中的location来）</li>
+<li>[可选]选用某个后端</li>
+<li>Handler 处理完把每个Buffer传给第一个Filter</li>
+<li>第一个Filter传给第二个Filter</li>
+<li>… 直到最后一个并把所有响应给Client</li>
+</ol>
+<h1 id="Nginx-模块的组成部分"><a href="#Nginx-模块的组成部分" class="headerlink" title="Nginx 模块的组成部分"></a>Nginx 模块的组成部分</h1><h2 id="1-配置部分"><a href="#1-配置部分" class="headerlink" title="1. 配置部分"></a>1. 配置部分</h2><p>命名： ngx_http_&lt;module_name>_(main|srv|loc)_conf_t，例如 dav 模块：</p>
+<pre><code>::c
+typedef struct {
+    ngx_uint_t methods;
+    ngx_flag_t create_full_put_path;
+    ngx_uint_t access;
+} ngx_http_dav_loc_conf_t;
+</code></pre><p>例如 ngx-redis模块：</p>
+<pre><code>::c
+typedef struct {
+    nginx_http_upstream_conf_t  upstream;      // set upsteam
+    nginx_int_t                 index;         // 
+    nginx_int_t                 db;
+    nginx_uint_t                gzip_flag;
+
+    ngx_http_complex_value_t   *complex_target;
+} ngx_http_redis_loc_conf_t;
+</code></pre><h2 id="2-指令部分"><a href="#2-指令部分" class="headerlink" title="2. 指令部分"></a>2. 指令部分</h2><p>一般是 ngx_command_t 的数组：</p>
+<pre><code>::c
+static ngx_command_t  ngx_http_redis_commands[] = {
+    { ngx_string(&quot;redis_pass&quot;),
+      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
+      ngx_http_redis_pass,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,   
+      NULL },
+
+    #if defined nginx_version &amp;&amp; nginx_version &gt;= 8022
+    { ngx_string(&quot;redis_bind&quot;),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      ngx_http_upstream_bind_set_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_redis_loc_conf_t, upstream.local),
+      NULL },
+    #endif
+
+    { ngx_string(&quot;redis_connect_timeout&quot;),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      ngx_conf_set_msec_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_redis_loc_conf_t, upstream.connect_timeout),
+      NULL },
+
+    { ngx_string(&quot;redis_send_timeout&quot;),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      ngx_conf_set_msec_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_redis_loc_conf_t, upstream.send_timeout),
+      NULL },
+
+    ...
+}
+</code></pre><p>一个ngx_command_t 的结构如下：</p>
+<pre><code>::c
+struct ngx_command_t {
+    ngx_str_t         name; // 指令名称
+    ngx_uint_t        type; // 指令作用的类型
+    char  *(*set)(ngx_conf_t *cf, ngx_command_t *cmd, void *conf); // 设置的回调
+    ngx_uint_t        conf;  // 标识变量在的位置，是在Main、Server还是Location
+    ngx_uint_t        offset; // 确定变量在结构体中的位置
+    void             *post; // 后处理的指针，一般是个NULL
+};
+</code></pre><p>具体参见：<a href="http://www.nginxguts.com/2011/09/configuration-directives/" target="_blank" rel="noopener">http://www.nginxguts.com/2011/09/configuration-directives/</a></p>
+<h2 id="3-模块上下文"><a href="#3-模块上下文" class="headerlink" title="3. 模块上下文"></a>3. 模块上下文</h2><p>静态 <code>ngx_http_module_t</code> 结构体，命名<code>ngx_http_&lt;module_name&gt;_module_ctx</code>，功能包括：</p>
+<ul>
+<li>preconfiguration(conf)</li>
+<li>postconfiguration</li>
+<li>create_main_conf – 分配内存以及设定初始值</li>
+<li>init_main_conf – 根据nginx.conf 重写初始值</li>
+<li>create_srv_conf – 创建server</li>
+<li>merge_srv_conf </li>
+<li>create_loc_conf</li>
+<li>merge_loc_conf</li>
+</ul>
+<p>redis的模块例子如下：</p>
+<pre><code>::c
+static ngx_http_module_t  ngx_http_redis_module_ctx = {
+    ngx_http_redis_add_variables,          /* preconfiguration */
+    NULL,                                  /* postconfiguration */
+
+    NULL,                                  /* create main configuration */
+    NULL,                                  /* init main configuration */
+
+    NULL,                                  /* create server configuration */
+    NULL,                                  /* merge server configuration */
+
+    ngx_http_redis_create_loc_conf,        /* create location configration */
+    ngx_http_redis_merge_loc_conf          /* merge location configration */
+};
+</code></pre><p>就如上面的例子，一般来说模块只有两个需要实现的， <code>ngxin_http_&lt;module&gt;_create_loc_conf</code><br> 用来分配内存， <code>nginx_http_&lt;module&gt;_merge_loc_conf</code> 用来合并配置。<br>合并配置会检查配置合法性，如果出错了，就会终止nginx的启动。</p>
+<p>preconfiguration 用来做一些配置读取前的准备，<br>例如redis模块用来初始化内置的变量 <code>ngx_http_redis_add_variables</code>：</p>
+<pre><code>::c
+static ngx_int_t
+ngx_http_redis_add_variables(ngx_conf_t *cf)
+{
+    ngx_int_t             n;
+    ngx_http_variable_t  *var;
+
+    var = ngx_http_add_variable(cf, &amp;ngx_http_redis_db,
+                                NGX_HTTP_VAR_CHANGEABLE);
+    if (var == NULL) {
+        return NGX_ERROR;
+    }
+
+    var-&gt;get_handler = ngx_http_redis_reset_variable;
+
+    n = ngx_http_get_variable_index(cf, &amp;ngx_http_redis_db);
+    if (n == NGX_ERROR) {
+        return NGX_ERROR;
+    }
+
+    ngx_http_redis_db_index = n;
+
+    return NGX_OK;
+}
+</code></pre><p>创建location位置的配置，例如redis的方法<code>nginx_http_redis_create_loc_conf</code>:</p>
+<pre><code>::c
+static void *
+ngx_http_redis_create_loc_conf(ngx_conf_t *cf)
+{
+    ngx_http_redis_loc_conf_t  *conf;
+
+    conf = ngx_pcalloc(cf-&gt;pool, sizeof(ngx_http_redis_loc_conf_t));
+    if (conf == NULL) {
+#if defined nginx_version &amp;&amp; nginx_version &gt;= 8011
+        return NULL;
+#else
+        return NGX_CONF_ERROR;
+#endif
+    }
+
+    /*
+     * set by ngx_pcalloc():
+     *
+     *     conf-&gt;upstream.bufs.num = 0;
+     *     conf-&gt;upstream.next_upstream = 0;
+     *     conf-&gt;upstream.temp_path = NULL;
+     *     conf-&gt;upstream.uri = { 0, NULL };
+     *     conf-&gt;upstream.location = NULL;
+     */
+
+    conf-&gt;upstream.connect_timeout = NGX_CONF_UNSET_MSEC;
+    /* more code */
+    return conf;
+}
+</code></pre><p>上面的<code>NGX_CONF_UNSET_MSEC</code>说明这些变量应该被合并。</p>
+<p>合并变量，<code>ngx_http_redis_merge_loc_conf</code>:</p>
+<pre><code>::c
+static char *
+ngx_http_redis_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
+{
+    ngx_hash_init_t            hash;
+
+    ngx_http_redis_loc_conf_t *prev = parent;
+    ngx_http_redis_loc_conf_t *conf = child;
+
+    ngx_conf_merge_msec_value(conf-&gt;upstream.connect_timeout,
+                              prev-&gt;upstream.connect_timeout, 60000);
+    if (0/*something bad happend*/) {
+        ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, &quot;maybe you forget set upstream?&quot;);
+        return NGX_CONF_ERROR;
+    }
+    /* more code */
+    return NGX_CONF_OK;
+}
+</code></pre><h2 id="4-模块定义"><a href="#4-模块定义" class="headerlink" title="4. 模块定义"></a>4. 模块定义</h2><p>一般称为<code>ngx_http_&lt;module&gt;_module</code>，一般需要的是上下文、命令，还有类型，<br>其他都是一堆钩子函数，正常用不到，用到了再说。</p>
+<pre><code>::c
+ngx_module_t  ngx_http_redis_module = {
+    NGX_MODULE_V1,
+    &amp;ngx_http_redis_module_ctx,            /* module context */
+    ngx_http_redis_commands,               /* module directives */
+    NGX_HTTP_MODULE,                       /* module type */
+    NULL,                                  /* init master */
+    NULL,                                  /* init module */
+    NULL,                                  /* init process */
+    NULL,                                  /* init thread */
+    NULL,                                  /* exit thread */
+    NULL,                                  /* exit process */
+    NULL,                                  /* exit master */
+    NGX_MODULE_V1_PADDING
+};
+</code></pre><h2 id="5-模块安装"><a href="#5-模块安装" class="headerlink" title="5. 模块安装"></a>5. 模块安装</h2><p>安装的方式根据模块类型而不同，以下一一介绍。</p>
+<h1 id="Handlers"><a href="#Handlers" class="headerlink" title="Handlers"></a>Handlers</h1><h2 id="1-Handler-解析"><a href="#1-Handler-解析" class="headerlink" title="1. Handler 解析"></a>1. Handler 解析</h2><p>Handler一般做四件事：</p>
+<ol>
+<li>获取配置</li>
+<li>生成对应的响应，如果是upstream，交给upstream处理</li>
+<li>发送 Headers</li>
+<li>发送 Body</li>
+</ol>
+<p>Handler 方法原型是包含一个 ngx_http_request_t 的参数，然后返回处理正确与否。<br>redis 模块的 Handler方法如下：</p>
+<pre><code>::c
+static ngx_int_t
+ngx_http_redis_handler(ngx_http_request_t *r) 
+{
+    ngx_int_t                       rc; 
+    ngx_http_upstream_t            *u;     
+    ngx_http_redis_ctx_t           *ctx;       
+    ngx_http_redis_loc_conf_t      *rlcf;
+
+    if (!(r-&gt;method &amp; (NGX_HTTP_GET|NGX_HTTP_HEAD))) {
+        return NGX_HTTP_NOT_ALLOWED;
+    }                                   
+
+    rc = ngx_http_discard_request_body(r);
+
+    if (rc != NGX_OK) {         
+        return rc;                          
+    }                                           
+
+    if (ngx_http_set_content_type(r) != NGX_OK) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;  
+    }                                               
+
+    rlcf = ngx_http_get_module_loc_conf(r, ngx_http_redis_module);
+    if (rlcf-&gt;complex_target) {             
+        ngx_str_t           target;                     
+        ngx_url_t           url;                                
+        /* Some code here */
+    }
+    /* Another code there */
+    return NGX_DONE;
+}
+</code></pre><h3 id="获取配置"><a href="#获取配置" class="headerlink" title="获取配置"></a>获取配置</h3><p>从上面代码，可以看到应用了宏 <code>ngx_http_get_module_loc_conf</code>，相应的，有srv/main的宏。</p>
+<pre><code>::c
+#define ngx_http_get_module_main_conf(r, module)                             \
+    (r)-&gt;main_conf[module.ctx_index]
+#define ngx_http_get_module_srv_conf(r, module)  (r)-&gt;srv_conf[module.ctx_index]
+#define ngx_http_get_module_loc_conf(r, module)  (r)-&gt;loc_conf[module.ctx_index]
+</code></pre><p>返回的<code>ngx_http_redis_loc_conf_t</code>就是需要配置了。</p>
+<h3 id="产生响应"><a href="#产生响应" class="headerlink" title="产生响应"></a>产生响应</h3><p>由于handler的参数只有一个 <code>ngx_http_request_t</code>，而这个结构体包罗万象，比如：</p>
+<pre><code>::c
+typedef struct {
+...
+/* the memory pool, used in the ngx_palloc functions */
+    ngx_pool_t                       *pool; 
+    ngx_str_t                         uri;
+    ngx_str_t                         args;
+    ngx_http_headers_in_t             headers_in;
+
+...
+} ngx_http_request_t;
+</code></pre><ul>
+<li><code>pool</code> 内存池，用ngx_palloc时需要的</li>
+<li><code>uri</code> 请求的uri</li>
+<li><code>args</code> 请求的queryString部分，比如 <code>name=jhon</code></li>
+<li><code>headers_in</code> Request的Headers部分，详见<a href="http://lxr.evanmiller.org/http/source/http/ngx_http_request.h#L158" target="_blank" rel="noopener">http/ngx_http_request.h</a></li>
+</ul>
+<h3 id="发送Headers"><a href="#发送Headers" class="headerlink" title="发送Headers"></a>发送Headers</h3><p>Response的Headers在<code>ngx_http_request_t.headers_out</code> 中，<br>要发送headers，直接 <code>rc = ngx_http_send_header(r)</code> 就行了，<br>其中这个结构体中比较有趣的一部分是：</p>
+<pre><code>::c
+typedef stuct {
+...
+    ngx_uint_t                        status;
+    size_t                            content_type_len;
+    ngx_str_t                         content_type;
+    ngx_table_elt_t                  *content_encoding;
+    off_t                             content_length_n;
+    time_t                            date_time;
+    time_t                            last_modified_time;
+..
+} ngx_http_headers_out_t;
+</code></pre><p>比如我们可以根据redis的设定返回Header（事实上这个模块并没有这种配置，<br>echo模块有status设置，以下是我自己的脑补）：</p>
+<pre><code>::c
+r-&gt;headers_out.status = rlcf.status;
+r-&gt;headers_out.content_length_n = 100;
+r-&gt;headers_out.content_type.len = sizeof(rlcf.content_type) - 1;
+r-&gt;headers_out.content_type.data = (u_char *) rlcf.content_type;
+ngx_http_send_header(r);
+</code></pre><p>但有些HTTP头并不能直接配置，例如<code>r-&gt;headers_out.content_encoding</code><br>是个 <code>nginx_table_elt_t*</code>，所以需要先分配内存。<code>ngx_list_push</code>这个方法<br>可以帮我们做这个事情，它传入一个<code>ngx_list_t</code>并返回最新的</p>
+<h3 id="TEST-MathJax"><a href="#TEST-MathJax" class="headerlink" title="TEST MathJax"></a>TEST MathJax</h3><p>$$\frac{\partial u}{\partial t}<br>= h^2 \left( \frac{\partial^2 u}{\partial x^2} +<br>\frac{\partial^2 u}{\partial y^2} +<br>\frac{\partial^2 u}{\partial z^2}\right)$$</p>
+<p>$$\begin{align}<br>    p(v_i=1|\mathbf{h}) &amp;= \sigma\left(\sum_j w_{ij}h_j + b_i\right) \<br>    p(h_j=1|\mathbf{v}) &amp;= \sigma\left(\sum_i w_{ij}v_i + c_j\right)<br> \end{align}$$</p>
+<p>$$E(\mathbf{v}, \mathbf{h}) = -\sum_{i,j}w_{ij}v_i h_j - \sum_i b_i v_i - \sum_j c_j h_j$$</p>
+<ul>
+<li>Inline equations: $p(x|y) = \frac{p(y|x)p(x)}{p(y)}$.</li>
+<li>Simple inline $a = b + c$.</li>
+</ul>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tech/">tech</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2015/commutativity-sosp13/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">可扩展交换性原则：多核多处理下可扩展性软件开发</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2015/how-synproxy-works/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">SynProxy 工作原理</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+});
+</script>
+<!-- fix compatibility between cloudflare and mathjax -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

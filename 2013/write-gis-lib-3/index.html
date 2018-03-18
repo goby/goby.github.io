@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>一步一步写GIS库 3.开始工作，Geometry相关 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tutorial">
+    <meta name="description" content="0.准备首先是先将前面介绍的几个开源库源码下载下来，基本上都是不需要额外的编译选项就可以在各种平台上编译（准确的说应该是类Unix）。 把这些代码放到一个方便查找的地方，就像这样：                                                                                             2013-11-05 10 57">
+<meta name="keywords" content="GIS, 邯郸学步">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一步一步写GIS库 3.开始工作，Geometry相关">
+<meta property="og:url" content="https://blog.gobyoung.com/2013/write-gis-lib-3/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="0.准备首先是先将前面介绍的几个开源库源码下载下来，基本上都是不需要额外的编译选项就可以在各种平台上编译（准确的说应该是类Unix）。 把这些代码放到一个方便查找的地方，就像这样：                                                                                             2013-11-05 10 57">
+<meta property="og:image" content="https://f.cloud.github.com/assets/3690179/1470737/fae97eac-45c5-11e3-8be9-cb0b7ff950b8.png">
+<meta property="og:image" content="https://f.cloud.github.com/assets/3690179/1470752/5f94e8d2-45c6-11e3-92bf-32b5449109a2.png">
+<meta property="og:image" content="https://f.cloud.github.com/assets/3690179/1470762/e45bd95e-45c6-11e3-86d4-53fcbe79329b.png">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一步一步写GIS库 3.开始工作，Geometry相关">
+<meta name="twitter:description" content="0.准备首先是先将前面介绍的几个开源库源码下载下来，基本上都是不需要额外的编译选项就可以在各种平台上编译（准确的说应该是类Unix）。 把这些代码放到一个方便查找的地方，就像这样：                                                                                             2013-11-05 10 57">
+<meta name="twitter:image" content="https://f.cloud.github.com/assets/3690179/1470737/fae97eac-45c5-11e3-8be9-cb0b7ff950b8.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">一步一步写GIS库 3.开始工作，Geometry相关</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">一步一步写GIS库 3.开始工作，Geometry相关</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2013-11-29T16:00:00.000Z" itemprop="datePublished" class="page-time">
+  2013-11-29
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#0-准备"><span class="post-toc-number">1.</span> <span class="post-toc-text">0.准备</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#确定Vertex"><span class="post-toc-number">2.</span> <span class="post-toc-text">确定Vertex</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#MBR"><span class="post-toc-number">3.</span> <span class="post-toc-text">MBR</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#其他几何模型"><span class="post-toc-number">4.</span> <span class="post-toc-text">其他几何模型</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#其他结构"><span class="post-toc-number">5.</span> <span class="post-toc-text">其他结构</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-write-gis-lib-3"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">一步一步写GIS库 3.开始工作，Geometry相关</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2013-11-30 00:00:00" datetime="2013-11-29T16:00:00.000Z"  itemprop="datePublished">2013-11-30</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="0-准备"><a href="#0-准备" class="headerlink" title="0.准备"></a>0.准备</h1><p>首先是先将前面介绍的几个开源库源码下载下来，基本上都是不需要额外的编译选项就可以在各种平台上编译（准确的说应该是类Unix）。</p>
+<p>把这些代码放到一个方便查找的地方，就像这样：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://f.cloud.github.com/assets/3690179/1470737/fae97eac-45c5-11e3-8be9-cb0b7ff950b8.png" alt="2013-11-05 10 57 10" title="">
+                </div>
+                <div class="image-caption">2013-11-05 10 57 10</div>
+            </figure></p>
+<p>然后将这些路径添加到 XCode 的头文件搜索路径中，以及把这些源码全部扔到工程里头去，像这样：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://f.cloud.github.com/assets/3690179/1470752/5f94e8d2-45c6-11e3-92bf-32b5449109a2.png" alt="2013-11-05 10 59 59" title="">
+                </div>
+                <div class="image-caption">2013-11-05 10 59 59</div>
+            </figure></p>
+<p>接下来将前几篇介绍和提到的简单整理整理思路。</p>
+<p>那么从最基本的开始吧——几何对象（Geometry），先观察观察ESRI公司的<a href="http://help.arcgis.com/en/sdk/10.0/arcobjects_net/componenthelp/index.html#//002m000001rm000000" target="_blank" rel="noopener">IGeometry</a>接口的信息：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://f.cloud.github.com/assets/3690179/1470762/e45bd95e-45c6-11e3-86d4-53fcbe79329b.png" alt="2013-11-05 11 03 36" title="">
+                </div>
+                <div class="image-caption">2013-11-05 11 03 36</div>
+            </figure></p>
+<p>接口中了解到基本都属性有Dimension、Envelope、GeometryType、SpatialReference等。Dimension就是维度，一般分为0、1、2、2.5、3几种情况，为了方便这个先不管了，我们先做2维的情况。</p>
+<p>Envelope就是最小外包框(<a href="http://en.wikipedia.org/wiki/Minimum_bounding_rectangle" target="_blank" rel="noopener">MBR</a>)， SpatialReference就是空间参考，将来空间参考应该会经常用到 Proj.4 这个项目。<br>ESRI的实现中， MBR也是作为Geometry的一种类型，在我们的实现中，为了简化这种关系，MBR将和只有两个坐标点信息：右上角(Upper Right)和左下角(Lower Left)。 </p>
+<p>那么先来实现MBR吧！</p>
+<ol>
+<li><h1 id="确定Vertex"><a href="#确定Vertex" class="headerlink" title="确定Vertex"></a>确定Vertex</h1></li>
+</ol>
+<p>实现MBR之前，还有一个比较重要的内容就是顶点的表示，由于我们为了方便，只需要在2维情况下实现，所以就可以借用Eigen 这个项目里头的 Vector 来实现，代码如下：</p>
+<pre><code>::C++
+
+#include &lt;Eigen/Eigen&gt;
+
+    typedef Eigen::Vector3f Point3f;
+    typedef Eigen::Vector3d Point3d;
+    typedef Eigen::Vector2d Point2d;
+    typedef Eigen::Vector2f Point2f;
+</code></pre><p>这样做的缺点是可能后来转为3维或者2.5维时需要重构的代码太多，但是能把代码写少是一件不容易的事情，所以就先这样吧。</p>
+<ol>
+<li><h1 id="MBR"><a href="#MBR" class="headerlink" title="MBR"></a>MBR</h1></li>
+</ol>
+<p>最小外包框一般用来建空间索引、重绘地图等。最直接的就是最小外包框有四个顶点，而左下角和右上角两个点就能确定这个外包框，所以：</p>
+<pre><code>::C++
+    class Mbr {
+    protected:
+        Point2f pt_ll, pt_ur;
+    };
+</code></pre><p>MBR应该也需要一些拓扑操作，所以正常还需要如下几个接口：</p>
+<pre><code>::C++
+    void reset(); // 将Mbr重置到初始状态
+    bool valid(); // 判断是否合法
+    float area(); // 面积计算
+    void addPoint(Point2f);
+    bool overlaps(Mbr); 
+    bool inside(Point2f);
+    bool insideOrTouch(Point2f);
+    bool contained(Mbr);
+    bool touch(Mbr);
+    Mbr intersect(Mbr);
+    void expand(Mbr);
+</code></pre><p>事实上更加合理地操作应该是定义一些拓扑关系枚举，然后进行拓扑分析即可（见<a href="http://en.wikipedia.org/wiki/Spatial_relation" target="_blank" rel="noopener">空间关系</a>）：</p>
+<pre><code>::C++
+enum SpatialRelation {
+    Equal = 0x0001;
+    Disjoint = 0x0002;
+    Intersect = 0x0004;
+    Touches = 0x0008;
+    Cover = 0x0010;
+    Contain = 0x0020;
+    CoveredBy = 0x0040;
+    Within = 0x0080;
+};
+</code></pre><p>那么如果学习 ESRI 的做法，只要给Geometry添加一个接口，以及声明一个拓扑操作 TopologyOp， 具备如下接口：</p>
+<pre><code>::C++
+SpatialRelation Geometry::relationTo(Geometry);
+SpatialRelation getRelation(Geometry, Geometry);
+</code></pre><p>就行了。</p>
+<p>这次暂时不这么做，如果右面有需要再说(TODO)。</p>
+<p>那么大概Mbr有如下代码清单：</p>
+<pre><code>::C++
+    void reset() { pt_ll = Point2f(0.f,0.f);  pt_ur = Point2f(-1.f,-1.f); }
+
+    bool valid() const { return pt_ur.x() &gt;= pt_ll.x(); }
+
+    float area() const { return (pt_ur.x() - pt_ll.x())*(pt_ur.y() - pt_ll.y());}
+
+    void addPoint(Point2f pt) {
+        if (!valid()) {
+            pt_ll = pt_ur = pt;  
+            return;
+        }
+
+        pt_ll.x() = std::min(pt_ll.x(),pt.x());  
+        pt_ll.y() = std::min(pt_ll.y(),pt.y());
+        pt_ur.x() = std::max(pt_ur.x(),pt.x());
+        pt_ur.y() = std::max(pt_ur.y(),pt.y());
+    }
+
+    bool overlaps(const Mbr&amp; that) {
+        // Basic inclusion cases
+        if ((that.insideOrTouch(pt_ll) || 
+             that.insideOrTouch(pt_ur) || 
+             that.insideOrTouch(Point2f(pt_ll.x(),pt_ur.y())) ||
+             that.insideOrTouch(Point2f(pt_ur.x(),pt_ll.y()))) ||
+            (insideOrTouch(that.pt_ll) || 
+             insideOrTouch(that.pt_ur) || 
+             insideOrTouch(Point2f(that.pt_ll.x(),that.pt_ur.y())) ||
+             insideOrTouch(Point2f(that.pt_ur.x(),that.pt_ll.y()))))
+            return true;
+
+        // Now for the skinny overlap cases
+        if ((that.pt_ll.x() &lt;= pt_ll.x() &amp;&amp; pt_ur.x() &lt;= that.pt_ur.x() &amp;&amp;
+             pt_ll.y() &lt;= that.pt_ll.y() &amp;&amp; that.pt_ur.y() &lt;= pt_ur.y()) ||
+            (pt_ll.x() &lt;= that.pt_ll.x() &amp;&amp; that.pt_ur.x() &lt;= pt_ur.x() &amp;&amp;
+             that.pt_ll.y() &lt;= pt_ll.y() &amp;&amp; pt_ur.y() &lt;= that.pt_ur.y()))
+            return true;
+        if ((pt_ll.x() &lt;= that.pt_ll.x() &amp;&amp; that.pt_ur.x() &lt;= pt_ur.x() &amp;&amp;
+             that.pt_ll.y() &lt;= pt_ll.y() &amp;&amp; pt_ur.y() &lt;= that.pt_ur.y()) ||
+            (that.pt_ll.x() &lt;= pt_ll.x() &amp;&amp; pt_ur.x() &lt;= that.pt_ur.x() &amp;&amp;
+             pt_ll.y() &lt;= that.pt_ll.y() &amp;&amp; that.pt_ur.y() &lt;= pt_ur.y()))
+            return true;
+
+        return false;
+    }
+
+    bool inside(Point2f pt) const { 
+        return ((pt_ll.x() &lt; pt.x()) &amp;&amp;
+                (pt_ll.y() &lt; pt.y()) &amp;&amp;
+                (pt.x() &lt; pt_ur.x()) &amp;&amp;
+                (pt.y() &lt; pt_ur.y()));
+    }
+
+    bool insideOrTouch(Point2f pt) const { 
+        return ((pt_ll.x() &lt;= pt.x()) &amp;&amp;
+                (pt_ll.y() &lt;= pt.y()) &amp;&amp;
+                (pt.x() &lt;= pt_ur.x()) &amp;&amp;
+                (pt.y() &lt;= pt_ur.y())); 
+    }
+
+    bool contained(const Mbr &amp;that) { 
+        return that.insideOrTouch(pt_ll) &amp;&amp; that.insideOrTouch(pt_ur); 
+    }
+
+    Mbr intersect(const Mbr &amp;that) const {
+        Mbr out;
+        out.ll().x() = std::max(ll().x(),that.ll().x());
+        out.ll().y() = std::max(ll().y(),that.ll().y());
+        out.ur().x() = std::min(ur().x(),that.ur().x());
+        out.ur().y() = std::min(ur().y(),that.ur().y());
+
+        return out;
+    }
+
+    void expand(const Mbr &amp;that) {
+        addPoint(that.pt_ll);
+        addPoint(that.pt_ur);
+    }
+</code></pre><ol>
+<li><h1 id="其他几何模型"><a href="#其他几何模型" class="headerlink" title="其他几何模型"></a>其他几何模型</h1></li>
+</ol>
+<p>因为是简单尝试，因此尽可能地在不损失完整性的情况下简化模型。所以我们暂时把MultiPoint、 Polyline 和 Polygon 都表示成Point[]。对于Polygon，<strong>不考虑自相交情况，不考虑岛和多环结构</strong>。对于一个几何操作，求Mbr、Area是最基本的，外加一些叠加等得操作，直接给了一组方法即可。</p>
+<p>因此大致可以得到以下几个方法：</p>
+<pre><code>::C++
+    typedef std::vector&lt;Point2f&gt; Geometry;
+    Mbr getMbr(const Geometry&amp;);
+    float getArea(const Geoemtry&amp;);
+    bool pointInPolygon(const Point2f&amp;,const Geometry&amp;);
+    bool convexPolygonIntersect(const Geometry&amp;, const Geometry&amp;);
+    bool lineIntersect(Point2f start0, Point2f end0, 
+                       Point2f start1, Point2f end1, Point2f* output);
+    void clipHomogeneousPolygon(const std::vector&lt;Eigen::Vector4d&gt; &amp;pts,
+                                std::vector&lt;Eigen::Vector4d&gt; &amp;outPts);
+    Point2f closestPointOnLineSegment(const Point2f &amp;p0,
+                                      const Point2f &amp;p1,
+                                      const Point2f &amp;pt);
+</code></pre><p>具体实现如下：</p>
+<pre><code>::C++
+    Mbr getMbr(const Geometry&amp; poly) {
+        if(poly.size() == 0) return Mbr;
+        float minx, miny, maxx, maxy;
+        minx=maxx=poly[0].x();
+        miny=maxy=poly[0].y();
+        for (unsigned int ii=0;ii&lt;poly.size();ii++) {
+            if(poly[ii].x()&gt;maxx) maxx=poly[ii].x();
+            if(poly[ii].x()&lt;minx) minx=poly[ii].x();
+            if(poly[ii].y()&gt;maxy) maxy=poly[ii].y();
+            if(poly[ii].y()&gt;miny) miny=poly[ii].y();
+        }
+        return Mbr(Point2f(minx,miny), Point2f(maxx,maxy));
+    }
+
+    // http://geomalgorithms.com/a01-_area.html
+    float getArea(const Geometry&amp; poly){
+        float area = 0;
+        int  i, j, k;   // indices
+        int n = poly.size();
+        if (n &lt; 3) return 0;  // a degenerate polygon
+
+        for (i=1, j=2, k=0; i&lt;n; i++, j++, k++) {
+            area += poly[i].x() * (poly[j].y() - poly[k].y());
+        }
+        // wrap-around term
+        area += poly[0].x() * (poly[1].y() - poly[n-1].y());
+        return area / 2.0;
+    }
+
+    bool pointInPolygon(const Point2f&amp; pt,const Geometry&amp; poly){
+        int ii, jj;
+        bool c = false;
+        for (ii = 0, jj = ring.size()-1; ii &lt; poly.size(); jj = ii++) {
+            if ( ((poly[ii].y()&gt;pt.y()) != (poly[jj].y()&gt;pt.y())) &amp;&amp;
+                (pt.x() &lt; (poly[jj].x()-poly[ii].x()) * (pt.y()-poly[ii].y()) / (poly[jj].y()-poly[ii].y()) + poly[ii].x()) )
+                c = !c;
+        }
+        return c;
+    }
+
+    bool convexPolygonIntersect(const Geometry&amp; poly0, const Geometry&amp; poly1){
+        Mbr mbr0 = getMbr(poly0); 
+        Mbr mbr1 = getMbr(poly1);
+        return mbr0.overlaps(mbr1);
+    }
+
+    bool lineIntersect(Point2f start0, Point2f end0, 
+                       Point2f start1, Point2f end1, Point2f* output) {
+        float denom = (start0.x()-end0.x())*(start1.y()-end1.y()) - 
+                      (start0.y() - end0.y())*(start1.x() - end1.x());
+        if (denom == 0.0)
+            return false;
+
+        float termA = (start0.x() * end0.y() - start0.y() * end0.x());
+        float termB = (start1.x() * end1.y() - start1.y() * end1.x());
+        output-&gt;x() = ( termA * (start1.x() - end1.x()) - (start0.x() - end0.x()) * termB)/denom;
+        output-&gt;y() = ( termA * (start1.y() - end1.y()) - (start0.y() - end0.y()) * termB)/denom;
+
+        return true;
+    }
+
+    Point2f closestPointOnLineSegment(const Point2f &amp;p0,
+                                      const Point2f &amp;p1,
+                                      const Point2f &amp;pt) {
+        float dx = p1.x()-p0.x(), dy = p1.y()-p0.y();
+        float denom = dx*dx+dy*dy;
+
+        if (denom == 0.0) return p0;
+
+        float u = ((pt.x()-p0.x())*(p1.x()-p0.x())+(pt.y()-p0.y())*(p1.y()-p0.y()))/denom;
+
+        if (u &lt;= 0.0) return p0;
+        if (u &gt;= 1.0) return p1;
+
+        return Point2f(p0.x()+dx*u,p0.y()+dy*u);
+    }
+</code></pre><ol>
+<li><h1 id="其他结构"><a href="#其他结构" class="headerlink" title="其他结构"></a>其他结构</h1></li>
+</ol>
+<p>几何类型基本就是这些了，如果以后用到，可以逐步添加，但是除了这些，可能还需要OpenGL ES相关的结构，比如颜色、纹理等。</p>
+<p>颜色无非就是ARGB：</p>
+<pre><code>::C++
+class Color
+{
+public:
+    Color() { }
+    Color(unsigned char r,unsigned char g,unsigned char b,unsigned char a) 
+        : r(r), g(g), b(b), a(a) { }
+    Color(unsigned char r,unsigned char g,unsigned char b)
+        : r(r), g(g), b(b), a(255) { }
+
+    /// Returns an an array of 4 floats
+    void asUnitFloats(float *ret) const { 
+        ret[0] = (float)r / 255.0;  
+        ret[1] = (float)g / 255.0; 
+        ret[2] = (float)b / 255.0; 
+        ret[3] = (float)a / 255.0; 
+    }
+
+    bool operator == (Color &amp;that) const { 
+        return (r == that.r &amp;&amp; g == that.g &amp;&amp; b == that.b &amp;&amp; a == that.a); }
+    bool operator == (Color that) const { 
+        return (r == that.r &amp;&amp; g == that.g &amp;&amp; b == that.b &amp;&amp; a == that.a); }
+    Color operator * (float alpha) const { 
+        return Color(r*alpha,g*alpha,b*alpha,a*alpha); }
+
+    unsigned char r,g,b,a;
+};
+</code></pre><p>其他就是TexCoord等的封装，等到具体要实现了再说吧。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tutorial/">tutorial</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2013/write-gis-lib-2/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">一步一步写GIS库 2.使用的第三方库</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2013/write-gis-lib-4/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">一步一步写GIS库 4.OpenGL ES 2 的封装</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

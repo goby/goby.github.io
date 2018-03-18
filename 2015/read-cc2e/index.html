@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>《代码大全》初读 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tech">
+    <meta name="description" content="很惭愧到现在才开始阅读代码大全，这个还是在微博上看到有人说起码代码大全应该读一遍才适合做同事的。于是下定决心读一下。  本科就见过《代码大全》真本书了，厚厚的一本书，然后望文生义地觉得这本估计就是算法小抄了，以至于后来在实验室之后也没有再去看了。知道上个礼拜，才开始觉得应该读一下。一翻书才发现我操这是一本软件工程的书啊，这中文书名真是害死人！！！  最近才看完第2部分：创建高质量的代码部分。 L">
+<meta name="keywords" content="代码大全">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《代码大全》初读">
+<meta property="og:url" content="https://blog.gobyoung.com/2015/read-cc2e/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="很惭愧到现在才开始阅读代码大全，这个还是在微博上看到有人说起码代码大全应该读一遍才适合做同事的。于是下定决心读一下。  本科就见过《代码大全》真本书了，厚厚的一本书，然后望文生义地觉得这本估计就是算法小抄了，以至于后来在实验室之后也没有再去看了。知道上个礼拜，才开始觉得应该读一下。一翻书才发现我操这是一本软件工程的书啊，这中文书名真是害死人！！！  最近才看完第2部分：创建高质量的代码部分。 L">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《代码大全》初读">
+<meta name="twitter:description" content="很惭愧到现在才开始阅读代码大全，这个还是在微博上看到有人说起码代码大全应该读一遍才适合做同事的。于是下定决心读一下。  本科就见过《代码大全》真本书了，厚厚的一本书，然后望文生义地觉得这本估计就是算法小抄了，以至于后来在实验室之后也没有再去看了。知道上个礼拜，才开始觉得应该读一下。一翻书才发现我操这是一本软件工程的书啊，这中文书名真是害死人！！！  最近才看完第2部分：创建高质量的代码部分。 L">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">《代码大全》初读</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">《代码大全》初读</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2015-01-01T07:21:00.000Z" itemprop="datePublished" class="page-time">
+  2015-01-01
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Lay-the-Foundation"><span class="post-toc-number">1.</span> <span class="post-toc-text">Lay the Foundation</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#TODO"><span class="post-toc-number">2.</span> <span class="post-toc-text">TODO</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-read-cc2e"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">《代码大全》初读</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2015-01-01 15:21:00" datetime="2015-01-01T07:21:00.000Z"  itemprop="datePublished">2015-01-01</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p> 很惭愧到现在才开始阅读代码大全，这个还是在微博上看到有人说起码代码大全应该读一遍才适合做同事的。于是下定决心读一下。</p>
+<p> 本科就见过《代码大全》真本书了，厚厚的一本书，然后望文生义地觉得这本估计就是算法小抄了，以至于后来在实验室之后也没有再去看了。知道上个礼拜，才开始觉得应该读一下。一翻书才发现我操这是一本软件工程的书啊，这中文书名真是害死人！！！</p>
+<p> 最近才看完第2部分：创建高质量的代码部分。</p>
+<h1 id="Lay-the-Foundation"><a href="#Lay-the-Foundation" class="headerlink" title="Lay the Foundation"></a>Lay the Foundation</h1><p> 第一部分主要讲的是软件构建的基础，分为4个章节，从软件构建的基础知识、到软件构建中的专业术语、<br>编写代码之前应该做什么事情、到准备开始动手开干。软件构建的基础知识我记得在本科毕业的时候想要进实验室曾经给自己下的一个任务，可是这么多年过去了，直到最近读这本书才想起来。比较系统的了解还是在进入公司之后，在看公司的一些文档才有了一个大致的了解。</p>
+<p>在实验室的时候，需求基本上都是小boss来谈，而且就实验室的项目来言，感觉都是课程大作业类型的。项目都是属于快速交付类型，就是一边编码一边调试一边上线，需求也总是变化，一个项目经常做上好几年，可能都博士毕业了项目还没结束。如果遇到那种 科研类型 的项目还好，反正也没人用，只要按照合同来一步步做，最后糊弄过熟悉的专家就行了（突然想起来，上次实验室的“双态云”还被专家认可为国际领先！！！）。另一种就是有实际用户的项目，这种项目非常吃力，只要一进实验室分配到这种项目，未来三年五年就是做这种了。我11年的时候就一个人驻地开发了3个月，经常直接在用户旁边根据用户的需求来改。这有个好处就是能贴近用户的需求，但是也模糊了个别用户与通用的界限，同时纵容用户也导致一些伪需求的出现。</p>
+<p>后来进了公司之后，发现公司里有点过了，可能为了明确责任吧，经常一个需求讨论挺久的。由于我所在的部门不是产品部门，这些其实也接触较少，唉，这涉及到另外一个话题了。现在有时候在后悔当初来这个岗位的决定，其实不太适合我，虽然我有信心做好，但会浪费很多时间。希望这段时间不是被我浪费，而是作为成为认真成长的一个阶段吧。</p>
+<p>最近在开发 <a href="http://grinder.sourceforge.net" target="_blank" rel="noopener">Grinder</a> 的一个插件，用来控制并发的，蛮简单的一个，过程设计之类的就放在另外一个地方吧，反正这个挺简单的。</p>
+<h1 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h1><p>*[科研类型]: 合作骗钱</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tech/">tech</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2015/javascript-bind-call-and-apply/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">JavaScript bind 探究</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2013/write-gis-lib-0/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">一步一步写GIS库 0. 写在所有之前</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>分布式系统理论基础摘要 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tech">
+    <meta name="description" content="网络和节点node，或者成为 process, agent, actor, member  节点 节点之间很慢，节点内部很快 所以任务尽可能在一个节点内完成 节点可靠，1) 挂掉都是作为个体挂，2) 挂掉可感知，3) 状态一致， 4) 状态转换可知 逻辑上的单节点本身也可以是分布式系统，因为对外提供一致性操作 进程的形式模型： 通信顺序进程， π演算， Ambient演算， Actor模型  通信">
+<meta name="keywords" content="distsys">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式系统理论基础摘要">
+<meta property="og:url" content="https://blog.gobyoung.com/2017/distsys-basic/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="网络和节点node，或者成为 process, agent, actor, member  节点 节点之间很慢，节点内部很快 所以任务尽可能在一个节点内完成 节点可靠，1) 挂掉都是作为个体挂，2) 挂掉可感知，3) 状态一致， 4) 状态转换可知 逻辑上的单节点本身也可以是分布式系统，因为对外提供一致性操作 进程的形式模型： 通信顺序进程， π演算， Ambient演算， Actor模型  通信">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式系统理论基础摘要">
+<meta name="twitter:description" content="网络和节点node，或者成为 process, agent, actor, member  节点 节点之间很慢，节点内部很快 所以任务尽可能在一个节点内完成 节点可靠，1) 挂掉都是作为个体挂，2) 挂掉可感知，3) 状态一致， 4) 状态转换可知 逻辑上的单节点本身也可以是分布式系统，因为对外提供一致性操作 进程的形式模型： 通信顺序进程， π演算， Ambient演算， Actor模型  通信">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">分布式系统理论基础摘要</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">分布式系统理论基础摘要</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-01-07T16:33:07.000Z" itemprop="datePublished" class="page-time">
+  2017-01-08
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#网络和节点"><span class="post-toc-number">1.</span> <span class="post-toc-text">网络和节点</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#节点"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">节点</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#通信顺序进程"><span class="post-toc-number">1.1.1.</span> <span class="post-toc-text">通信顺序进程</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#π演算"><span class="post-toc-number">1.1.2.</span> <span class="post-toc-text">π演算</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Ambient演算"><span class="post-toc-number">1.1.3.</span> <span class="post-toc-text">Ambient演算</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Actor模型"><span class="post-toc-number">1.1.4.</span> <span class="post-toc-text">Actor模型</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#传输层"><span class="post-toc-number">2.</span> <span class="post-toc-text">传输层</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#TCP"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">TCP</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#UDP"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">UDP</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#时钟"><span class="post-toc-number">3.</span> <span class="post-toc-text">时钟</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#什么是-wall-clock"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">什么是 wall clock?</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#什么是-lamport-clock"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">什么是 lamport clock?</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#什么是矢量时钟？"><span class="post-toc-number">3.3.</span> <span class="post-toc-text">什么是矢量时钟？</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#GPS-原子时钟"><span class="post-toc-number">3.4.</span> <span class="post-toc-text">GPS/原子时钟</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-distsys-basic"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">分布式系统理论基础摘要</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-01-08 00:33:07" datetime="2017-01-07T16:33:07.000Z"  itemprop="datePublished">2017-01-08</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h2 id="网络和节点"><a href="#网络和节点" class="headerlink" title="网络和节点"></a>网络和节点</h2><p>node，或者成为 process, agent, actor, member </p>
+<h3 id="节点"><a href="#节点" class="headerlink" title="节点"></a>节点</h3><ul>
+<li>节点之间很慢，节点内部很快</li>
+<li>所以任务尽可能在一个节点内完成</li>
+<li>节点可靠，1) 挂掉都是作为个体挂，2) 挂掉可感知，3) 状态一致， 4) 状态转换可知</li>
+<li>逻辑上的单节点本身也可以是分布式系统，因为对外提供一致性操作</li>
+<li>进程的形式模型： <a href="https://en.wikipedia.org/wiki/Communicating_sequential_processes" target="_blank" rel="noopener">通信顺序进程</a>， <a href="https://en.wikipedia.org/wiki/Π-calculus" target="_blank" rel="noopener">π演算</a>， <a href="https://en.wikipedia.org/wiki/Ambient_calculus" target="_blank" rel="noopener">Ambient演算</a>， <a href="https://en.wikipedia.org/wiki/Actor_model" target="_blank" rel="noopener">Actor模型</a></li>
+</ul>
+<h4 id="通信顺序进程"><a href="#通信顺序进程" class="headerlink" title="通信顺序进程"></a>通信顺序进程</h4><p>通信顺序进程，就是 Communicating Sequential Processes, 简称 CSP(和 CPS continuation passing-style 好像)<br>。  由于不是科班出身，且对计算机理论并不了解，所以对于这种形式模型不了解。 还好学过数学，好歹能够简单理解下。</p>
+<p>CSP 是描述并发系统中交互模式的形式语言，影响到 occam 以及 golang、crystal 等。 以及例如 <a href="http://www.raftlib.io" target="_blank" rel="noopener">RaftLib</a><br>– 一个目标是在多人协同开发下还能提供极端性能的可移植并行处理系统。</p>
+<p>由于原始的CSP 比较难理解，以下是从wiki上摘抄的非形式化表达。</p>
+<p><strong>定义</strong></p>
+<p>CSP 提供了两种不同类型的元素：</p>
+<ol>
+<li>Events，表示通信或者交互，基本特性是独立且非持久的。<br>可以是原子名(on, off)、组成名(valve.open, valve,close) 或者 输入/输出事件(<code>mouse?xy</code>, <code>screen!bitmap</code>)</li>
+<li>基本进程，表示基本的行为，例如包含 <em>STOP</em>(进程没有交流，或者成为死锁)， <em>SKIP</em>(表示<br>成功结束)</li>
+</ol>
+<p><strong>代数操作符</strong></p>
+<p>//</p>
+<h4 id="π演算"><a href="#π演算" class="headerlink" title="π演算"></a>π演算</h4><p>//</p>
+<h4 id="Ambient演算"><a href="#Ambient演算" class="headerlink" title="Ambient演算"></a>Ambient演算</h4><p>//</p>
+<h4 id="Actor模型"><a href="#Actor模型" class="headerlink" title="Actor模型"></a>Actor模型</h4><p>//</p>
+<h2 id="传输层"><a href="#传输层" class="headerlink" title="传输层"></a>传输层</h2><p>通常我们都是通过 TCP 或者 UDP 来实现的。不过本着</p>
+<blockquote>
+<p>不管如何优化 UDP， 最后都会变成实现一个 TCP</p>
+</blockquote>
+<p>的原则，我们最好使用 TCP，TCP 本身诸多有点能够让我们更专注上层。</p>
+<h3 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h3><ul>
+<li>Rule 1: 如果能用 TCP ，就用 TCP</li>
+<li>Rule 2: 默认 TCP 也许不快，但是又一堆参数和算法可以优化，常见比如fask/sask/流控/reuse port 等等</li>
+<li>Rule 3: TCP 能够帮我们防止重复发包/丢包/乱序/探活</li>
+<li>Rule 4: 应用层必须处理应用层的问题，比如必须设置超时</li>
+<li>Rule 5: 如果传输最终失败，就必须有相应的措施：要么丢失信息要么重试</li>
+</ul>
+<h3 id="UDP"><a href="#UDP" class="headerlink" title="UDP"></a>UDP</h3><ul>
+<li>Rule 1: UDP 是简单的 IP 复用</li>
+<li>Rule 2: UDP 大部分情况不能满足速度的需求</li>
+<li>Rule 3: UDP 可能被随意丢弃，可能会重复，可能会乱序，这些统统都要自己处理</li>
+<li>Rule 4: 调试 UDP 比 TCP 难(因为你不知道为什么包丢了等等)</li>
+<li>Rule 5: 只有认为 TCP 状态机非常昂贵的情况下，采用 UDP，比如内存因素，比如大量短连接，比如端口复用</li>
+<li>Rule 6: UDP 应该用于 best-effort delivery，比如电话，人能够自己识别和重试，比如游戏，卡顿并且快速恢复，<br>比如其他正确处理下层混乱情况的协议</li>
+</ul>
+<h2 id="时钟"><a href="#时钟" class="headerlink" title="时钟"></a>时钟</h2><p>时钟的作用就是让我们知道事件的先后顺序、状态的变化过程先后。<br>以前不知道为什么 spanner 要弄个 GPS + 原子钟， 后来了解分布式系统<br>中时钟的作用，才能深刻理解。 时钟就是为了给不同数据中心的事务确定先后<br>顺序。</p>
+<p>现在多核时代，不同的CPU之间其实也存在时钟同步问题。接下来就需要安排详读<br><a href="https://www.landley.net/kdocs/ols/2006/ols2006v1-pages-333-346.pdf" target="_blank" rel="noopener">Hrtimers and Beyoung: Transforming the Linux Time Subsystems</a></p>
+<h3 id="什么是-wall-clock"><a href="#什么是-wall-clock" class="headerlink" title="什么是 wall clock?"></a>什么是 wall clock?</h3><p>就是 <code>&lt;sys/time.h&gt;</code> 内的时间，或者说我们常调用的 <code>gettimeofday()</code> 就是。<br>通常它只能让我们得到偏序的结果(即 inner-process events 的顺序)。<br>但这个有什么问题呢？ 为什么大家要研究时钟问题？</p>
+<ul>
+<li>NTP并不是如我们想象的那么美好，</li>
+<li>节点间无法完全同步，节点间的网络传输有时延，处理有耗时，不能确定节点间<br>通信通道的稳定性</li>
+<li>硬件时钟有偏差，时钟会漂移(比如常规晶振的精度，一天延迟个几毫秒也是很常见)</li>
+<li>By Centuries ????</li>
+<li>按照定义， <a href="https://en.wikipedia.org/wiki/Unix_time" target="_blank" rel="noopener">POSIX 时间</a>并非单调，<br>为什么这么说呢？因为 POSIX 时间采用格列高历，有闰秒的考虑(比如今天 2017-1-1 07:59:59 CST)<br>这里就多了1s，导致 POSIX 时间在这里可能会回退 1s。实际上，最好用 TAI，国际原子时，<br>每天严格 86400s ，不会考虑任何闰秒</li>
+<li>想要的时间精度并不一定能够达到</li>
+<li>线程可能会睡眠</li>
+<li>运行时可能睡眠，例如电源管理器为了省电， 给 CPU 降频</li>
+<li><a href="https://events.linuxfoundation.org/slides/2011/linuxcon-japan/lcj2011_wysocki.pdf" target="_blank" rel="noopener">系统/硬件可能休眠</a></li>
+</ul>
+<p>总而言之，最好别用（也可以看看 areiz 与 XXX 关于 Redis Lock 的讨论）。</p>
+<h3 id="什么是-lamport-clock"><a href="#什么是-lamport-clock" class="headerlink" title="什么是 lamport clock?"></a>什么是 lamport clock?</h3><p>来自 Lamport 著名的论文 <a href="http://research.microsoft.com/en-us/um/people/lamport/pubs/time-clocks.pdf" target="_blank" rel="noopener">Times, Clocks and Ordering of Events in Distributed Systems</a></p>
+<p>每个进程单独计时，每次变更时间+1，单调递增，每次信息传递都附上时间。 收到信息， t’ = max(t, t_msg+1)<br>如果我们有一堆全序的进程，那么产生的事件也是全序的，但是可能反直觉(?)</p>
+<h3 id="什么是矢量时钟？"><a href="#什么是矢量时钟？" class="headerlink" title="什么是矢量时钟？"></a>什么是矢量时钟？</h3><p><a href="http://cacm.acm.org/magazines/2016/4/200168-why-logical-clocks-are-easy/abstract" target="_blank" rel="noopener">Why Logical Clocks Are Easy</a></p>
+<ul>
+<li>将 Lamport Clock 变成所有进程的时钟向量， $v = [t_1…t_n]$</li>
+<li>$t_i’ = max(t_i, t_{msg,i})$</li>
+<li>对于进程 $p_i$， 一旦执行操作，则增加向量中 $v’(p_i) = v(p_i) + 1$</li>
+<li>提供偏序因果，即： $A &lt; B$， 当且仅当 $ A_i &lt;= B_i $，且存在 <code>k</code>，使得 $A_k &lt; B_k$</li>
+<li>编程上： 过去共享，但是当前状态独立</li>
+<li>通常只有当前状态才是需要考虑的，过去状态可以丢弃</li>
+<li><code>O(p)</code> 的空间复杂度，其中 p 为进程个数</li>
+<li>有个问题，当进程退出时，需要特殊的方式进行GC，或者不失正确性的情况下直接忽略</li>
+<li>有两种数据结构：Dotted Version Vectors 和 Interval Tree Clocks</li>
+<li><a href="http://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf" target="_blank" rel="noopener">Interval Tree Clocks</a>: 对于反复<br>创建退出进程比较合适</li>
+<li><a href="http://gsd.di.uminho.pt/members/vff/dotted-version-vectors-2012.pdf" target="_blank" rel="noopener">Dotted Version Vectors</a>:<br>适合于C/S 架构</li>
+</ul>
+<h3 id="GPS-原子时钟"><a href="#GPS-原子时钟" class="headerlink" title="GPS/原子时钟"></a>GPS/原子时钟</h3><p>Spanner 就是 使用这种方案，也是目前知道的唯一使用这种方案的公司。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tech/">tech</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2017/how-linux-implements-pipe/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">pipe(7) 原理与实现</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/goodbye-2016/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Goodbye, 2016</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

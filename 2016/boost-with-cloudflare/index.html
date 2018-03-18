@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>Boost Your Blog with CloudFlare | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tech">
+    <meta name="description" content="为什么要加速因为众所周知的原因， 在大天朝访问 *.github.io 的速度总是不那么理想， 尤其是在庆丰朝的今天。 另外因为 Github 最近的财报不太好， 为了开源节流，已经把 Github Pages 进行限流了。 我的这个站点很早以前已经经过 CloudFlare 加速了，而且加速效果非常不错。 同时这个站点里头也用到了 google 的一些服务( Google Fonts 以及 Go">
+<meta name="keywords" content="tech">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Boost Your Blog with CloudFlare">
+<meta property="og:url" content="https://blog.gobyoung.com/2016/boost-with-cloudflare/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="为什么要加速因为众所周知的原因， 在大天朝访问 *.github.io 的速度总是不那么理想， 尤其是在庆丰朝的今天。 另外因为 Github 最近的财报不太好， 为了开源节流，已经把 Github Pages 进行限流了。 我的这个站点很早以前已经经过 CloudFlare 加速了，而且加速效果非常不错。 同时这个站点里头也用到了 google 的一些服务( Google Fonts 以及 Go">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Boost Your Blog with CloudFlare">
+<meta name="twitter:description" content="为什么要加速因为众所周知的原因， 在大天朝访问 *.github.io 的速度总是不那么理想， 尤其是在庆丰朝的今天。 另外因为 Github 最近的财报不太好， 为了开源节流，已经把 Github Pages 进行限流了。 我的这个站点很早以前已经经过 CloudFlare 加速了，而且加速效果非常不错。 同时这个站点里头也用到了 google 的一些服务( Google Fonts 以及 Go">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Boost Your Blog with CloudFlare</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Boost Your Blog with CloudFlare</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2016-12-26T10:45:10.000Z" itemprop="datePublished" class="page-time">
+  2016-12-26
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#为什么要加速"><span class="post-toc-number">1.</span> <span class="post-toc-text">为什么要加速</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#能够加速的地方"><span class="post-toc-number">2.</span> <span class="post-toc-text">能够加速的地方</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#如何加速"><span class="post-toc-number">3.</span> <span class="post-toc-text">如何加速</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#HTTP2"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">HTTP2</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#代理优化"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">代理优化</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#如何实现加速-我认为"><span class="post-toc-number">4.</span> <span class="post-toc-text">如何实现加速(我认为)</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Rocket-Loader"><span class="post-toc-number">4.1.</span> <span class="post-toc-text">Rocket Loader</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-boost-with-cloudflare"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">Boost Your Blog with CloudFlare</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2016-12-26 18:45:10" datetime="2016-12-26T10:45:10.000Z"  itemprop="datePublished">2016-12-26</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="为什么要加速"><a href="#为什么要加速" class="headerlink" title="为什么要加速"></a>为什么要加速</h1><p>因为众所周知的原因， 在大天朝访问 *.github.io 的速度总是不那么理想， 尤其是<br>在庆丰朝的今天。 另外因为 Github 最近的<a href="https://www.bloomberg.com/news/articles/2016-12-15/github-is-building-a-coder-s-paradise-it-s-not-coming-cheap" target="_blank" rel="noopener">财报不太好</a>， 为了开源节流，已经把<br> <a href="https://help.github.com/articles/what-is-github-pages/#usage-limits" target="_blank" rel="noopener">Github Pages 进行限流</a>了。</p>
+<p>我的这个站点很早以前已经经过 CloudFlare 加速了，而且加速效果非常不错。 同时这个站点里头<br>也用到了 google 的一些服务( Google Fonts 以及 Google 自定义搜索等)，通过 CloudFlare<br>也能够实现内容的加速。</p>
+<h1 id="能够加速的地方"><a href="#能够加速的地方" class="headerlink" title="能够加速的地方"></a>能够加速的地方</h1><p>依赖 Cloudflare 的节点, 能够实现 CDN 的加速功能( 但好像看起来我的并不行，<br>总是被调度到他们的总部，不过这样能够防治某墙对 *.github.io 的干扰， 总体效果依然比<br>采用了 Fastly CDN 的 github.io 强)。 </p>
+<h1 id="如何加速"><a href="#如何加速" class="headerlink" title="如何加速"></a>如何加速</h1><p>加速基本模型如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Client &lt;-----&gt; CloudFlare &lt;--&gt; Github Pages Server</span><br></pre></td></tr></table></figure>
+<p>好在 Github Pages 支持域名绑定，我们把域名给 CloudFlare 解析，然后 CNAME 到<br>goby.github.io 即可，记得在配置的时候打开 CDN and HTTPProxy 开关。</p>
+<p>然后在 CloudFlare 配置即可。以下介绍下一些关键点。</p>
+<h2 id="HTTP2"><a href="#HTTP2" class="headerlink" title="HTTP2"></a>HTTP2</h2><p>打开 CloudFlare 的 Cryto/SSL， 调整成 Flexible 即可。</p>
+<p>CloudFlare 如何实现的呢？ 简单地说，就是替我们申请 X.509 证书，帮我们做 SSL 卸载。<br>然后通过 SAN(<a href="https://en.wikipedia.org/wiki/Subject_Alternative_Name" target="_blank" rel="noopener">Subject Alternative Name</a>) 将一张证书给一堆域名用。比如，我<br>的证书的 SAN 字段就是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">DNS Name=sni152148.cloudflaressl.com</span><br><span class="line">DNS Name=*.atom-design.com.pl</span><br><span class="line">...</span><br><span class="line">DNS Name=*.gobyoung.com</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>生成一个带有 SAN 的证书可以参见 <a href="https://gist.github.com/Soarez/9688998" target="_blank" rel="noopener">How to setup your own CA with OpenSSL</a>。<br>从返回的头部也初步判断 CloudFlare 用户前端 Server 就是 Nginx( ningx 大牛章亦春之前就在<br>它家)， 而 nginx 干这种事情最得心应手。</p>
+<p>现在用 Nginx + OpenSSL 做 SSL offload 可以借助硬件，比如 Intel 的 <a href="https://software.intel.com/en-us/articles/intel-advanced-encryption-standard-instructions-aes-ni" target="_blank" rel="noopener">AES-NI</a><br>加速。</p>
+<p>猜想它的后台应该是这样实现：</p>
+<ul>
+<li>用户添加一条记录，启用 CDN 以及 SSL</li>
+<li>把用户请求分配到某个证书请求队列中，每个队列有一定的编号，比如 sni152148</li>
+<li>在比较短的时间内，比如可能是一小时或者十分钟，将所有该队列中的域名放入 SAN 并向证书服务商<br>发送证书申请</li>
+<li>完成，并将获得的证书下发到代理服务器上</li>
+<li>在后面某段时间，进行证书之间的 rebalance(即将某个域名转到不同的队列中去, 因为我的网站<br>的证书变过几次)</li>
+</ul>
+<p>因为证书价格不菲，而Let’s Encrypt 之类的需要自己去renew，所以直接交给 CloudFlare 帮我们<br>处理，并且它也支持自动renew。</p>
+<h2 id="代理优化"><a href="#代理优化" class="headerlink" title="代理优化"></a>代理优化</h2><p>另外一个很强大的功能就是代理优化，比如：</p>
+<ul>
+<li>Rocket Loader – 自动优化Javascript，合并 js 文件，并保证第三方的js不会拖慢页面加载速度，<br>我觉得比较强大的一点，它能够让我直接使用 Google Custom Search</li>
+<li>Local Storage Caching – 利用本地缓存(例如 chrome 的 localStorage )，将文件内容写到本地<br>缓存中，防治网络的重复请求(相对于 HTTP 的 Caching 来说，连网络请求都不用了)，也就是说能直接利用<br>本地缓存渲染。</li>
+<li>Cache Header Optimization – 直接优化 HTTP 头的缓存相关(Date/Expire/Last-Modified 之类的)</li>
+<li>HTTP2 – 就如第一节将的，升级成 HTTP2，多路复用、头压缩、请求流优先级等。</li>
+<li>Server Push – 这个也是 HTTP2 的一个优势，解读 HTML 内容，在 Client 获取文件之前，一次性<br>将所需的文件推送给 Client。 常见的比如，当Client 请求 HTML 时，服务端将所需的 CSS、图片等<br>直接推给 Client， 减少多个 RTT。</li>
+<li>AutoMinify – 自动优化 HTML, CSS, Javascript 文件，例如我使用了 bootstrap， <a href="https://blog.gobyoung.com/media/js/bootstrap.js">经过优化</a><br>的文件相较于<a href="https://raw.githubusercontent.com/goby/goby.github.io/master/media/js/bootstrap.js" target="_blank" rel="noopener">原文件</a>，大小降低 32%。</li>
+<li>Automatic Content Caching – CloudFlare 的边缘服务器会自动缓存各种静态资源文件，而且通过<br>TTL 来控制(和 Local Storage Caching 配合)。而且可以配置 TTL，即边缘节点多久回源刷新缓存。</li>
+</ul>
+<p>以下介绍下我对这几个功能的理解，以及让我来做，我改怎么实现。</p>
+<h1 id="如何实现加速-我认为"><a href="#如何实现加速-我认为" class="headerlink" title="如何实现加速(我认为)"></a>如何实现加速(我认为)</h1><p>本章介绍下我认为的该如何实现加速。</p>
+<h2 id="Rocket-Loader"><a href="#Rocket-Loader" class="headerlink" title="Rocket Loader"></a>Rocket Loader</h2><p>官方的介绍 <a href="https://blog.cloudflare.com/56590463/" target="_blank" rel="noopener">How CloudFlare Rocket Loader Redefines the Modern CDN</a> 有点陈旧了，<br>是 2011 年的内容，里头介绍了几点 Rocket Loader 的特点：</p>
+<ul>
+<li>保证所有外部包含的 js 均不会阻碍页面加载</li>
+<li>所有的js，包含第三方的，都是异步加载</li>
+<li>使用单个请求加载所有的 js</li>
+<li>使用 LocalStorage 来缓存 js，除非有必须，否则连请求都不用</li>
+</ul>
+<p>通过我自己的观察，我发现当前(cloudflarejs-rocketloader-0.11.5 Tue Oct 07 2014 03:19:25)，它实现<br>方式如下：</p>
+<ul>
+<li>首先扫描页面，将所有的 scrypt 的 type 改成 <code>text/rocketscript</code>，并将外联的形式的脚本的 <code>src</code><br>属性改成 <code>data-rocketsrc</code></li>
+<li>在页面最开头，注入 <code>CloudFlareJS-0.1.34</code>，实际上就是装着所有 CF 在客户端的加速处理脚本(包含一些特殊的高级<br>功能，比如网站公告等)，由 CloudFlareJS 动态加载 <code>rocket loader</code></li>
+<li>Rocket Loader 处理所有的 <code>text/rocketscript</code> 类型的 <code>script</code>，记录嵌入式脚本和外联脚本的<br>先后顺序，保证原始页面脚本之间的依赖关系</li>
+<li><p>在 Loader 载入完成之后，将所有外联式脚本的地址拼凑起来，发送到 <code>/cdn-cgi/pe/bag2</code> 下，其中结果用 <code>multipart</code> 返回回来，<br>比如当前(2016-12-25)观察到的如下:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /cdn-cgi/pe/bag2</span><br><span class="line">QueryString </span><br><span class="line">    <span class="attribute">r[]:https://blog.gobyoung.com/media/js/modernizr.js</span></span><br><span class="line">    r[]:https://blog.gobyoung.com/media/js/jquery.js</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line"><span class="attribute">RESP</span></span><br><span class="line">  Content-Type multipart/mixed</span><br><span class="line"></span><br><span class="line">  <span class="attribute">X-Cf-Url</span>: https://blog.gobyoung.com/media/js/modernizr.js</span><br><span class="line">  <span class="attribute">X-Cf-Status</span>: 200</span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>解析响应结果，将脚本，将结果保存在 LocalStorage 中，如果可用的话，这样，下次请求的时候就会先查询一下<br>Local Storage，直接去掉无畏的请求</p>
+</li>
+<li>按照页面的顺序执行 js 文件和 js 脚本</li>
+<li>我发现我用的 jQuery 的 ajax 自己加载 js 脚本，它也能正确地拦截并进行代理，这用的是什么原理？</li>
+</ul>
+<p>有意思的是爆栈上也有类似的<a href="http://webmasters.stackexchange.com/questions/60276/how-does-cloudflares-rocket-loader-actually-work-and-how-can-a-developer-ensur" target="_blank" rel="noopener">讨论</a><br>，和我的看法大同小异。</p>
+<p>这个虽然看起来比较简单，但是实现起来可能有一堆细节要处理（各种浏览器的兼容性、框架兼容性等），<br>比如我使用的是 Google Custom Search，每次搜索都是拼凑 URL， 结果它也都给我缓存起来了，实质上这些<br>请求都是暂时的，这也是它的 bug 之一吧。</p>
+<p>我来实现的话，认为需要实现以下几个部分：</p>
+<p>1). 实现聚合的 Nginx 模块可以利用 subrequest + upstream 简单实现请求的聚合，如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">              / subrequest 1.js -- upstream</span><br><span class="line">MainRequest -+- subrequest 2.js -- upstream</span><br><span class="line">              \ subrequest 3.js -- upstream</span><br></pre></td></tr></table></figure></p>
+<p>在实现的时候需要在 main request 把所有的 subrequest 的关键 header 拿到，<br>写入响应 body 中。 在实现中，只需要提取与缓存相关的头即可，第二个是要防止恶意攻击，<br>比如递归请求。第三个本地缓存的重要性。</p>
+<p>2). 实现改写 HTML 的 Nginx 模块，这个直接使用现有的模块 <a href="http://nginx.org/en/docs/http/ngx_http_sub_module.html" target="_blank" rel="noopener">ngx_http_sub_module</a><br>即可。例如：<br><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">location</span> / &#123;</span><br><span class="line">  <span class="attribute">sub_filter</span> <span class="string">'&lt;script&gt;'</span> <span class="string">'&lt;script type="text/rocketscript"&gt;'</span>;</span><br><span class="line">  <span class="attribute">sub_filter</span> <span class="string">'&lt;script src='</span> <span class="string">'&lt;script data-rocketsrc='</span>;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>另外一个就需要在 <code>&lt;head&gt;</code> 标签的里头插入 Rocket Loader 的引用，例如：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="undefined">  try &#123;</span></span><br><span class="line"><span class="xml">    document.write('<span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span> <span class="attr">src</span>=<span class="string">//...</span>&gt;</span><span class="undefined"></span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>');</span><br><span class="line">  &#125; catch(e) &#123;&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>用 <a href="https://github.com/yaoweibin/ngx_http_substitutions_filter_module" target="_blank" rel="noopener">nginx_http_substitutions_module</a> 直接用 正则表达式，能实现<br>更加强大的功能， 不过还需要和上面的需求一样，需要一个缓存保障性能。(其实不能简单地进行正则<br>替换，需要对整个 DOM 树进行解析，否则在部分场景下，比如有 <code>&lt;pre&gt;</code> 的时候会出问题)</p>
+<p>3). 客户端 Rocket Loader 的实现，简单的实现如下:<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> scripts = <span class="built_in">document</span>.getElementsByTagName(<span class="string">'script'</span>);</span><br><span class="line"><span class="keyword">var</span> rockets = [];</span><br><span class="line">scripts.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">i, e</span>)</span>&#123;</span><br><span class="line">  <span class="comment">// 将 rocket 脚本、外联脚本以及不在本地缓存中的脚本加到请求队列中</span></span><br><span class="line">  <span class="keyword">if</span> (isRocketScript(e) &amp;&amp; isExternalScript(e) &amp;&amp; !inLocalStorage(e)) &#123;</span><br><span class="line">    rockets.push(e);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 组建请求，并设置回调</span></span><br><span class="line">getScripts(rockets, <span class="function"><span class="keyword">function</span>(<span class="params">resp</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 将返回结果放到缓存中</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> p : resp.parts) &#123;</span><br><span class="line">    saveLocalStorage(p);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 按顺序执行脚本</span></span><br><span class="line">  runScripts(scripts);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>如何解决 rocket loader 的兼容性问题呢？</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tech/">tech</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2017/goodbye-2016/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Goodbye, 2016</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2016/nginx-slab-code-read/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">nginx 共享内存分配机制探究</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>Google Maglev 翻译 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tech">
+    <meta name="description" content="[缘由]： 本文是 google 在今年NSDI上一篇会议论文，介绍他们运行了8年的负责全球业务的负载均衡服务 Maglev。从文中可以看到 Maglev 中使用的技术，例如 ECMP、BGP、GRE、Kernel Bypass、一致性哈希等都是常见且成熟的技术方案，但他们的组合方案以及后面的监控/调试手段都让我收益良多。因此就在周末的时候翻译了一下，和大家共享。经验较少、水平有限，翻译失当地方欢">
+<meta name="keywords" content="tech">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Google Maglev 翻译">
+<meta property="og:url" content="https://blog.gobyoung.com/2016/maglev-load-balancer-translate/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="[缘由]： 本文是 google 在今年NSDI上一篇会议论文，介绍他们运行了8年的负责全球业务的负载均衡服务 Maglev。从文中可以看到 Maglev 中使用的技术，例如 ECMP、BGP、GRE、Kernel Bypass、一致性哈希等都是常见且成熟的技术方案，但他们的组合方案以及后面的监控/调试手段都让我收益良多。因此就在周末的时候翻译了一下，和大家共享。经验较少、水平有限，翻译失当地方欢">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/e30cf8fc-0274-4052-b590-ec8a839789ed.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/3db49483-ce09-4384-9eec-4963db7c0950.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/987eed70-e65e-4bac-a9e5-81ade6deb8a5.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/68165b8d-e769-499c-8b75-ecca8681600b.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/9688207c-2875-4f4c-81d1-81e8681a1fbb.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/cbe69316-d0fd-469a-9692-95948f0cfb51.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/84c97589-6f51-4e76-817b-b176a0411f89.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/cd73a348-3ac6-4581-9509-a87cf75376a0.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/ecf106d0-185f-4e64-9f9b-d50d869a3ba6.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/4d4244e8-cd4d-4d82-98d5-a80180f885d4.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/5b99a425-e144-4baa-bd73-6287b409003f.jpg">
+<meta property="og:image" content="https://blog.gobyoung.com/assets/img/maglev/a338aa2f-df9b-4973-857f-305c70e6ed9f.jpg">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Google Maglev 翻译">
+<meta name="twitter:description" content="[缘由]： 本文是 google 在今年NSDI上一篇会议论文，介绍他们运行了8年的负责全球业务的负载均衡服务 Maglev。从文中可以看到 Maglev 中使用的技术，例如 ECMP、BGP、GRE、Kernel Bypass、一致性哈希等都是常见且成熟的技术方案，但他们的组合方案以及后面的监控/调试手段都让我收益良多。因此就在周末的时候翻译了一下，和大家共享。经验较少、水平有限，翻译失当地方欢">
+<meta name="twitter:image" content="https://blog.gobyoung.com/assets/img/maglev/e30cf8fc-0274-4052-b590-ec8a839789ed.jpg">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Google Maglev 翻译</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Google Maglev 翻译</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2016-03-07T14:13:13.000Z" itemprop="datePublished" class="page-time">
+  2016-03-07
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#摘要"><span class="post-toc-number">1.</span> <span class="post-toc-text">摘要</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#1-介绍"><span class="post-toc-number">2.</span> <span class="post-toc-text">1. 介绍</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#2-系统概况"><span class="post-toc-number">3.</span> <span class="post-toc-text">2. 系统概况</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-1-前端服务架构"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">2.1 前端服务架构</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-2-Maglev-配置"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">2.2 Maglev 配置</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#3-转发器设计和实现"><span class="post-toc-number">4.</span> <span class="post-toc-text">3. 转发器设计和实现</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-1-总体架构"><span class="post-toc-number">4.1.</span> <span class="post-toc-text">3.1 总体架构</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-2-快速包处理"><span class="post-toc-number">4.2.</span> <span class="post-toc-text">3.2 快速包处理</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-3-后端选择"><span class="post-toc-number">4.3.</span> <span class="post-toc-text">3.3 后端选择</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-4-一致性哈希"><span class="post-toc-number">4.4.</span> <span class="post-toc-text">3.4 一致性哈希</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#4-操作经验"><span class="post-toc-number">5.</span> <span class="post-toc-text">4. 操作经验</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-1-Maglev-的进化"><span class="post-toc-number">5.1.</span> <span class="post-toc-text">4.1 Maglev 的进化</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-1-1-故障恢复"><span class="post-toc-number">5.1.1.</span> <span class="post-toc-text">4.1.1 故障恢复</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-1-2-包处理过程"><span class="post-toc-number">5.1.2.</span> <span class="post-toc-text">4.1.2 包处理过程</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-2-VIP-匹配"><span class="post-toc-number">5.1.3.</span> <span class="post-toc-text">4.2 VIP 匹配</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-3-分片处理"><span class="post-toc-number">5.2.</span> <span class="post-toc-text">4.3 分片处理</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-4-监控和调试"><span class="post-toc-number">5.3.</span> <span class="post-toc-text">4.4 监控和调试</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#5-评估"><span class="post-toc-number">6.</span> <span class="post-toc-text">5. 评估</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-1-负载均衡"><span class="post-toc-number">6.1.</span> <span class="post-toc-text">5.1 负载均衡</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-2-单机吞吐量"><span class="post-toc-number">6.2.</span> <span class="post-toc-text">5.2 单机吞吐量</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-2-1-Kernel-Bypass"><span class="post-toc-number">6.2.1.</span> <span class="post-toc-text">5.2.1 Kernel Bypass</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-2-2-流量类型"><span class="post-toc-number">6.2.2.</span> <span class="post-toc-text">5.2.2 流量类型</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-2-3-网卡速度"><span class="post-toc-number">6.2.3.</span> <span class="post-toc-text">5.2.3 网卡速度</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-3-一致性哈希"><span class="post-toc-number">6.3.</span> <span class="post-toc-text">5.3 一致性哈希</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#6-相关工作"><span class="post-toc-number">7.</span> <span class="post-toc-text">6. 相关工作</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#7-结论"><span class="post-toc-number">8.</span> <span class="post-toc-text">7. 结论</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#致谢"><span class="post-toc-number">9.</span> <span class="post-toc-text">致谢</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#引用"><span class="post-toc-number">10.</span> <span class="post-toc-text">引用</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-maglev-load-balancer-translate"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">Google Maglev 翻译</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2016-03-07 22:13:13" datetime="2016-03-07T14:13:13.000Z"  itemprop="datePublished">2016-03-07</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>[缘由]： 本文是 google 在今年NSDI上一篇会议论文，介绍他们运行了8年的负责全球业务的负载均衡服务 Maglev。从文中可以看到 Maglev 中使用的技术，例如 ECMP、BGP、GRE、Kernel Bypass、一致性哈希等都是常见且成熟的技术方案，但他们的组合方案以及后面的监控/调试手段都让我收益良多。因此就在周末的时候翻译了一下，和大家共享。经验较少、水平有限，翻译失当地方欢迎批评指正。原文：[<a href="http://research.google.com/pubs/archive/44824.pdf]" target="_blank" rel="noopener">http://research.google.com/pubs/archive/44824.pdf]</a></p>
+<h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>Maglev 是 Google 的网络负载均衡器。<br>他是运行在通用 Linux 服务器上的大型分布式软件系统。<br>不像传统的硬件软件负载均衡器，<br>maglev 无需专门的部署物理机架，<br>同时他的能力能够简单地通过增减机器来调节。<br>网络路由器通过等价多路径路由(ECMP) 均等地分发给 maglev 机器；<br>每台 Maglev 机器再匹配数据包与他们对应的服务，<br>然后把包平均分发给每个服务Endpoint。<br>为了适应比较高或者不断增长的流量，Maglev 专门优化包转发性能。<br>单台 Maglev 机器能够满足万兆的小包流量。<br>为了最小化意外错误或者故障给面向连接协议的服务造成影响，<br>Maglev 同时具备一致性哈希和连接追踪功能。<br>Maglev 从 2008 年开始就在Google 内部服务，它支撑全球快速增长的 Google 服务，同时为 Google Cloud Platform 提供网络负载均衡服务。</p>
+<h1 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h1><p>Google 是全球互联网流量的主要源头[29, 30]。<br>它提供了数以百计的面向用户的服务，同时还有不断增长的许许多多托管在 Cloud Platform[6] 的服务。<br>著名的 Google 服务，比如 Google 搜索、Gmail 每秒能够收到来自全球各地的百万计的请求， 极大的依赖底层服务基础架构。</p>
+<p>为了满足如此高压力且低延迟，<br>Google 的服务需要在全球范围多个集群部署一堆服务器。<br>每个集群中，为了有效地使用资源和防止个别服务器过载，<br>一个基本的功能就需要均衡所有服务器的流量。<br>从而使网络负载均衡器成为 Google 生产环境的网络基础设施中的重要组成部分。</p>
+<p> <img src="/assets/img/maglev/e30cf8fc-0274-4052-b590-ec8a839789ed.jpg" alt="Alt pic"> </p>
+<p>一个网络负载均衡器通常由多台分布在路由器和服务端(通常是TCP/UDP服务器)之间的设备组成，<br>例如图一所示。<br>它负责每个包的匹配和转发。</p>
+<p>网络负载均衡器传统由硬件设备实现[1,2,3,5,9,12,13]，一般来说有诸多限制。<br>首先，他们的可扩展性通常受限于点单的最大能力，导致无法满足 Google 的增长。<br>其次，他们的高可用不可满足 Google的需求。<br>尽管他们经常成对地部署以避免单点故障，但是只能提供 1 + 1  冗余。<br>第三，他们缺少快速迭代所需要的灵活性和可编程性，修改一台硬件负载均衡设备并非不可能，<br>只是通常比较难。<br>第四，升级代价大。升级一台硬件负载均衡通常包含购买新设备以及物理部署。<br>因为以上种种限制，我们研究和寻求另一种解决方案。</p>
+<p>所有的服务所在集群都是常规服务器，我们可以在这些服务器上<br>以分布式软件的形式构建网络负载均衡器。<br>一个软件负载均衡系统有很多优点。<br>我们可以应用 scale-out 模型来应对可扩展性。<br>LB 的容量可以通过增加系统中机器的数量来改善： 通过ECMP 转发，<br>流量可以均衡地经过所有机器。<br>可用性可可靠性可以通过系统提供 N+1 冗余保证。<br>对系统的整体把控，我们可以快速地添加、测试和部署新特性。<br>同时，也极大的简化 LB 服务的部署： 服务只使用集群中现有的机器。<br>我们也可以将统一集群中服务切分成多个分片(shards) 以达到性能的隔离。</p>
+<p>尽管有如上诸多优点，设计和实现一个软件网络负载均衡器非常复杂和富有挑战性。<br>首先，系统中的每个独立机器必须提供高吞吐量。<br>设 N 为系统中机器的数量， T 为单台机器的最高吞吐量。<br>整个系统的最高容量限制在 N * T。<br>如果 T 不够高，提供满足所有服务的容量并不划算[22]。<br>这个系统作为一个整体必须提供连接持久化(connection persistence)：<br>属于同一连接的数据包必须始终分发到同一个服务上。<br>这个确保了服务质量因为集群经常变化和故障非常常见[23, 40]。</p>
+<p>这篇论文提供了 Maglev，一个快速且可靠的软件负载均衡系统。<br>从 2008 年开始，Maglev 成为 Google 前端服务基础架构中重要组成部分。<br>如今几乎承担 Google 所有来自用户的流量。<br>为了利用当前高速服务器网络技术[18, 41, 35, 31]， 每台 Maglev 机器都能线速地处理每个小包。<br>通过一致性哈希(consistent hashing)和连接追踪(connection tracking)， Maglev 提供了在频繁变更和未知故障下的可靠包分发。<br>尽管本文描述一些技术已经存在许多年，本文展示如果利用这些技术构建一个系统(operational system)。<br>本文的主要贡献?为：<br>1）展现 Maglev 的设计和实现，<br>2）分享全球范围内操作 Maglev 的经验以及<br>3）通过多重评估证明 Maglev 的能力。</p>
+<h1 id="2-系统概况"><a href="#2-系统概况" class="headerlink" title="2. 系统概况"></a>2. 系统概况</h1><p>本节概要地介绍了 Maglev 作为一个网络负载均衡器如何工作。<br>我们先简单地介绍下 Google 的前端服务架构，接下来介绍 Maglev 系统服务配置。</p>
+<h2 id="2-1-前端服务架构"><a href="#2-1-前端服务架构" class="headerlink" title="2.1 前端服务架构"></a>2.1 前端服务架构</h2><p>Maglev 部署在 Google 前端服务位置，包含多种集群规格。<br>为了化繁为简，本文中，我们只关注于构建一个小型的集群，然后简要地描述大型集群的构建。<br>图2 显示一个小型集群的 Google 前端服务架构的概况。</p>
+<p> <img src="/assets/img/maglev/3db49483-ce09-4384-9eec-4963db7c0950.jpg" alt="Alt pic"> </p>
+<p>每个 Google 服务都有一个或者多个 VIP。<br>一个 VIP 和物理 IP 的区别在于 VIP 没有绑给某个特定的网卡，<br>但是为 Maglev 背后多个服务Endpoint提供服务。<br>Maglev 关联每个 VIP 到具体的服务，然后通过 BGP 宣告给上游路由器；<br>然后路由再把 VIP 宣告给 Google 的骨干网。<br>这些 VIP 宣告给互联网使得他们能够在全球内被访问。<br>Maglev 同时处理 IPv4 和 IPv6 流量，以下所有的描述均可用于这两者。</p>
+<p>当用户访问<a href="http://www.google.com" target="_blank" rel="noopener">www.google.com</a> 上的 Google 服务，首先浏览器先发送一个 DNS 请求，<br>然后从某个 Google 的权威DNS服务器上获取 DNS 的响应（可能直接从本地缓存中或者本地DNS的缓存）。<br>DNS 服务考量服务与用户距离以及负载情况，返回服务的 VIP[16]。<br>然后浏览器尝试与该 VIP 建立连接。</p>
+<p>当路由器接收到一个 VIP 数据包，通过 ECMP 将数据包路由到 Maglev 集群中的某台机器上，<br>因为所有 Maglev 集群都用相当的代价宣告同一个 VIP。<br>当 Maglev 的机器接收到数据包， 它从一堆关联到该 VIP 的服务Endpoint中选个一个，<br>然后用 GRE 封包，外层的 IP 即对端的IP。</p>
+<p>当数据包到达所选的服务 endpoint 使进行解包和消费。响应时源地址用VIP 填充，目的地址为用户 IP。<br>我们使用直接服务返回(Direct Server Return， DSR) ，将响应直接发送给路由器，<br>这样 Maglev 无需处理通常是大包的响应包。<br>本文关注来自用户的进向的流量的负载均衡。<br>DSR的实现则在本文的范畴之外。[注： DSR实现需要依赖每个服务上的一个模块，<br>用于GRE拆包和响应包的组装]。</p>
+<h2 id="2-2-Maglev-配置"><a href="#2-2-Maglev-配置" class="headerlink" title="2.2 Maglev 配置"></a>2.2 Maglev 配置</h2><p>如前一节的描述， Maglev 负责像向路由器宣告 VIP 和转发 VIP 流量到服务 endpoint 。<br>每台 Maglev 包含一个控制器和转发器，如图3 所示。<br>控制器和转发器都需要从配置对象中学习 VIP。<br>配置对象则从配置文件中读取或者通过 RPC 接收来自外部系统控制。</p>
+<p> <img src="/assets/img/maglev/987eed70-e65e-4bac-a9e5-81ade6deb8a5.jpg" alt="Alt pic"> </p>
+<p>每台 Maglev 机器，控制器周期性地转发器的健康状态。<br>根据检查结果， 控制器决定通过 BGP 宣告或者撤回 VIP。<br>这个确保路由器只路由包到健康的 Maglev 机器。</p>
+<p>Maglev 接收的所有 VIP 数据包都是由转发器处理。<br>在转发器中， 每个 VIP 配置有 1 个或者多个后端池。<br>除非另外的说明，这些后端就是服务 endpoint 。<br>一个后端池可能包含服务 endpoint 的物理地址，<br>可能包含其他后端池（如此则通用的后端池则无需重复配置）。<br>每个后端池，根据需求关联了一个或者多个对后端服务的健康检查方法。<br>相同服务可能在多个后端池中，健康检查根据 IP 地址去重防止额外的负载。</p>
+<p>转发器的配置管理负责在变更转发规则前解析和校验配置对象。<br>所有的配置更新都是原子性的。同一个集群里 Maglev 机器的配置可能因为<br>网络延迟或者健康检查关系暂时不同步。<br>但是，一致性哈希可以保证在较短时间窗口内，<br>连接在相同后端池的 Maglev 机器之间漂移。</p>
+<p>在同一个集群中可以部署多个 Maglev 分片。<br>不同 Maglev 切片配置不同且为不同的 VIP 服务。<br>分片可以提供性能隔离和保证服务质量。<br>它也能够在不影响常规流量的情况下测试新特性。<br>本文简化问题，我们假定每个集群中只有一个分片。</p>
+<h1 id="3-转发器设计和实现"><a href="#3-转发器设计和实现" class="headerlink" title="3. 转发器设计和实现"></a>3. 转发器设计和实现</h1><p>转发器是 Maglev 的核心组件，他需要快速且可靠地处理大量的数据包。<br>本节解释 Maglev 转发器中关键模块的设计和实现细节，以及设计背后的原理。</p>
+<h2 id="3-1-总体架构"><a href="#3-1-总体架构" class="headerlink" title="3.1 总体架构"></a>3.1 总体架构</h2><p>图4 显示 Maglev 转发器的总体架构。<br>转发器从网卡接收到数据包，通过合理的 GRE/IP 头重写数据包，再将它们发回网卡。<br>Linux 内核不参与这个过程。</p>
+<p> <img src="/assets/img/maglev/68165b8d-e769-499c-8b75-ecca8681600b.jpg" alt="Alt pic"> </p>
+<p>从网卡接收数据包的首先被转发器中的 Steering 模块处理，<br>即通过 5 元组哈希(<code>s_ip</code>, <code>s_port</code>, <code>d_ip</code>, <code>d_port</code>, <code>ip_proto_num</code>)然后交给不同接收队列。<br>每个接受队列附加在一个重写包的线程上。<br>线程首先尝试匹配包到已配置的VIP上，这个步骤过滤了非法的包。<br>然后重新计算 5 元组哈希，然后在连接追踪表(见 3.3 章)上查找对应的哈希值。<br>我们没有重复利用 Streeing 模块中的哈希值，避免跨线程的同步。</p>
+<p>这个连接表存储了最近连接的后端服务的选择结果。<br>如果发现匹配了，并且后端仍然健康，则复用改结果。<br>否则线程查询一致性哈希模块(见 3.4 章节) 同时选择一个新的后端，<br>同时添加一个新的条目到连接表中。<br>如果后端不可用，则丢弃数据包。<br>转发器为每个线程维护一个连接表防止争用。<br>当后端选择后，线程用合适的 GRE/IP 进行封包，然后发送到附加的传输队列。<br>然后 Muxing 模块轮询所有的传输队列，再发送给网卡。</p>
+<p>Steering 模块使用5元组哈希而不是Round Robin 调度有两个原因。<br>首先，它降低同一个连接的数据包重排列的可能性，因为不同线程处理的速度的差异导致数据包乱序。<br>其次，对于连接追踪，转发器只需要为每个连接选择一次后端即可，<br>节省时钟周期，消除因为后端健康检查更新竞争导致的选择不同后端的可能性。<br>极端情况下如果接收队列满了，Steering 模块会退化使用Round-Robin 调度，<br>将数据包发送给其他可用的队列。<br>这个退化机制在处理大量相同5元组数据包中非常有效。</p>
+<h2 id="3-2-快速包处理"><a href="#3-2-快速包处理" class="headerlink" title="3.2 快速包处理"></a>3.2 快速包处理</h2><p>Maglev 转发器需要尽快处理数据包，以在满足 Google 流量需求的情况下节省成本。<br>我们设计它在转发下满足线速 —— 在普遍都是万兆网卡的 Google 集群的今天。<br>换句话说，对于1500字节的IP包来说，相当于813Kpps。<br>然后，我们的需求更加严格：我们需要非常高效地处理小包，因为进来的请求通常是小包。<br>假设IP包的平均大小100字节，转发器必须能够处理 9.06Mpps。<br>本节的描述了我们达到这个包处理速度的关键技术。</p>
+<p>Maglev 是一个运行在通用 Linux 服务器上的用户态程序。<br>因为 Linux 内核协议栈计算开销非常昂贵，<br>并且 Maglev 并不需要协议栈的任何特性，<br>以为这 Maglev 可以在包处理时绕开整个内核。<br>在合适的网卡硬件的支持下，我们在转发器和网卡之间开发了一套绕开内核的机制，<br>如图5.<br>当 Maglev 启动时，预先分配至好网卡和转发器共用的数据包池(Packet pool)。<br>Steering 和 muxing 模块都维护了一个指针的 ring queue ，指向该数据包池。</p>
+<p> <img src="/assets/img/maglev/9688207c-2875-4f4c-81d1-81e8681a1fbb.jpg" alt="Alt pic"> </p>
+<p>Steering 和 Muxing 模块都为了 3 个指向环形队列的指针。<br>对于接收端，网卡将新收到的包放在 <code>received</code> 指针位置，然后向前移动该指针。<br>Steering 模块分发数据包到数据包线程然后向前移动 <code>processed</code> 指针。<br>它同时从池里保留未使用的数据包，然后放在环形队列中，<br>并向前移动 <code>reserved</code> 指针。<br>这三个指针根据箭头一个跟着一个。类似地，在发送端，<br>网卡将指向 <code>send</code> 指针的数据包发送出去并向前移动指针。<br>Muxing 模块将重写的数据包发送队列中的<code>ready</code>位置并向前移动指针。<br>它同时将已被网卡发送的数据包归还给池子并向前移动 <code>recycled</code> 指针。<br>整个过程都没有包拷贝。</p>
+<p>为了减少昂贵跨界操作，我们在可能的时候会批量处理数据包。<br>另外，数据包线程之间不共享任何数据，避免了他们之间的竞争。<br>我们将每个线程绑定在固定的 CPU 核上以保证性能。<br>在所有这些优化措施下， Maglev 能够在处理小包时达到限速，见 5.2 章节。</p>
+<p>进而，Maglev 为整个链路增加的延迟非常小。<br>通常，在我们的标准的机器上， 线程处理的时间为 350ns。<br>有两种特殊情况会延长处理时间。<br>因为转发器是批量处理包的，每个批次需要等到数据包达到一定量或者时钟超时。<br>实现中我们把定时器设为 50 微妙。<br>因此如果 Maglev 显著地空载，在最坏情况下每个数据包都会增加50微妙的延迟。<br>一个可能的优化手段就是动态地调整批量的大小[32]。<br>另一种情况是当 Maglev 过载时，会增加额外的处理时间。<br>Maglev 能够缓存的最多的数据包的数量依赖于包池的大小。<br>超过的数据包会被网卡丢掉。<br>假设包池的大小为3000，转发器能够处理10Mpps，<br>他需要300微妙来处理所有的缓存的数据包。<br>因此 Maglev 过载严重的情况， 每个数据包最多会增加300微妙的延迟。<br>幸运的是，这种情况可以通过合理的容量规划和增加 Maglev 机器解决。</p>
+<h2 id="3-3-后端选择"><a href="#3-3-后端选择" class="headerlink" title="3.3 后端选择"></a>3.3 后端选择</h2><p>一旦数据包目的符合某个 VIP，我们需要从该VIP的后端池中选择一个合适的后端。<br>对于面向连接的协议，比如 TCP，需要严格地将同一连接的所有后端发送给同一个后端。<br>我们通过两部分策略来实现。<br>首先，我们通过一种新型的一致性哈希算法选择出一个后端，<br>然后我们将这个抉择保存在本地的连接表中。</p>
+<p>Maglev 的连接追踪表使用了固定大小的哈希表映射往后端的数据包的 5 元组哈希值。<br>如果哈希值在表中不存在， Maglev 会选择一个后端，并保存在表中。<br>否则 Maglev 简单的复用之前使用的后端。<br>这个保证了属于同一连接的所有数据包都发给同一个后端，只要后端仍然可以处理数据包。<br>连接追踪在后端变更中迟早有用：比如，当后端可用或者宕机，增加或者移除，或者权重变化。</p>
+<p>然后，每个 Maglev 的连接追踪在我们的分布式环境下是独立的。<br>首先，它假设所有的拥有相同五元组的数据包都发往同一台 Maglev 机器。<br>因为上游的路由器通常不提供连接亲缘性，这个假设在一堆 Maglev 机器发生改变时无法保证。<br>不幸的是，这种改变不可避免同时由于种种原因经常发生。<br>比如，当升级集群中的 Maglev 时，我们轮流重启机器，<br>事先将每一台的流量移开一会儿，然后一旦Maglev 启动在恢复。<br>这个过程可能耗时一个小时，这段时间内，Maglev 的数量持续变化。<br>我们有时也添加、移除或者替代 Maglev 机器。<br>所有这些操作会导致标准的 ECMP 实现在很大范围内洗刷流量，导致连接在不同 的Maglev 中切换。<br>新的 Maglev 并没有正确的连接表项，所有如果此时后端也在变更，会导致连接断开。</p>
+<p>第二种理论上的限制是连接追踪表是有限的，<br>在大压力下或者 SYN Flood 攻击下表容易填满。<br>因为 Maglev 只有在超时的情况才会移除表项，移动表满了，<br>我们需要重新为数据包选择后端。<br>虽然实际中现代的计算机通常有大量的内存，<br>但在部署中，Maglev 和其他服务是共享机器的，我们需要限制连接表的大小。</p>
+<p>如果上述任何一种情况发生，我们没办法依赖单一的连接追踪来处理后端的变更。<br>所以 Maglev 同时提供一致性哈希来确保在上述情况下的包的可靠性传输。</p>
+<h2 id="3-4-一致性哈希"><a href="#3-4-一致性哈希" class="headerlink" title="3.4 一致性哈希"></a>3.4 一致性哈希</h2><p>处理连接追踪的限制的一种可行的方法是在所有机器中共享连接状态，<br>例如利用 [34] 中的分布式哈希表。<br>然后，这种方法的负面影响是影响转发性能 ——<br>撤销连接状态甚至在同一台中的 Maglev 机器都会有竞争。</p>
+<p>一种更高性能的方法是使用本地的一致性哈希。<br>一致性哈希的理论[28] 或者 Rendezvous 哈希[38] 在 1990年代被提出来。<br>它通过生成一张带有每个后端的大的查询表来实现。<br>这种方法提供两种符合 Maglev 复原后端选择的特性：</p>
+<ul>
+<li>负载均衡： 每个后端收到几乎相等的链接</li>
+<li>最小破坏： 当一堆后端出现变更，一条连接几乎被发往同一个后端</li>
+</ul>
+<p>[28] 和 [38] 都是通过负载均衡优先最小打断，他们设计目标为小数量服务优化网页缓存。然后， Maglev 有两个原因 take the opposite approach。<br>首先， Maglev 尽可能地均衡负载到后端的服务非常重要。<br>否则，后端服务必须提供额外的冗余服务来承担峰值流量。<br>Maglev 中，对于某些VIP，可能有数以百计的后端服务与之对应，<br>我们的经验发现 [28] 和 [38] 对于每个 VIP 都需要一个过于庞大的查询表，<br>以满足 Maglev 需要的负载均衡能力。<br>其次，尽管最小化查询表disruptions 非常重要，<br>但那时一小数量的 disruption 对于 Maglev 是可以容忍的。<br>稳定的状态，对查询表的更改不会导致连接重置，因为对连接亲缘的 Maglev 不会同时地改变。<br>当连接亲缘的 Maglev 改变时，对于一定量的查询表破坏会有成比例的重置。</p>
+<p>经过上述的考虑，我们设计了一种新型的一致性哈希算法，我们称之为 <em>Maglev 哈希</em>。<br>Maglev 哈希的基本思想就是给每个后端一个<br>所有查询表位置的优先列表。<br>然后所有的后端轮流填充他们最感兴趣的表中的空白位置，直到整张表都完全填满。<br>因此， Maglev 哈希几乎为每个后端共享了一张查询表。<br>通过更改相应的后端次序的频率可以得到相异的后端权重；<br>这个细节本文并未涉及。</p>
+<p>设 <code>M</code> 为查询表的大小。<br>后端 <code>i</code> 感兴趣的列表存储在 <code>permutation[i]</code> 中，<br><code>permutation[i]</code> 是一个数组 <code>(0, M-1)</code> 的随机排列。<br>一个快速生成 <code>permutation[i]</code> 的方法，<br>每个后端都一个唯一的名字。<br>我们首先用两个不同的哈希方法对这个名字进行哈希，<br>产生两个数字 <code>offset</code> 和 <code>skip</code>。<br>然后使用这些数字产生 <code>permutation[i]</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">offset = h1(name[i]) mod M</span><br><span class="line">skip   = h2(name[i]) mod (M-1)  + 1</span><br><span class="line">permutation[i][j] = (offset + j * skip) mod M</span><br></pre></td></tr></table></figure></p>
+<p><code>M</code> 必须是质数，这样所有 <code>skip</code> 都与之互质。<br>设 <code>N</code> 为一个 VIP 后端池的大小。<br>填充它的查询表的算法如<a href="">伪代码1</a>。<br>我们使用<code>next[i]</code> 来追踪后端 <code>i</code> 的 <code>permulation[i]</code> 中下一个位置，最后的查询表存储在 <code>entry</code> 中。<br>算法外层的 while，我们遍历所有的后端。<br>对于每个后端 <code>i</code> 我们从 <code>permutation[i]</code> 中找到一个候选的索引 <code>c</code>，该位置的查询表还是空的，<br>然后把该位置的填充为后端 <code>i</code>。<br>如此循环直到查询表的所有位置均被填充完毕。</p>
+<p><strong>Pseudocode 1</strong> Populate Maglev hashing loockup table.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">function Populate</span><br><span class="line">    for each i &lt; N do next[i] = 0 end for</span><br><span class="line">    for each j &lt; M do entry[j] = -1 end for </span><br><span class="line">    n = 0</span><br><span class="line">    while true do</span><br><span class="line">        for each i &lt; N do</span><br><span class="line">            c = permutation[i][next[i]]</span><br><span class="line">            while entry[c] &gt;= 0 do</span><br><span class="line">                next[i] = next[i] + 1</span><br><span class="line">                c = permutation[i][next[i]]</span><br><span class="line">            end while</span><br><span class="line">            entry[c] = i</span><br><span class="line">            next[i] = next[i] + 1</span><br><span class="line">            n = n + 1</span><br><span class="line">            if n == M then return end if</span><br><span class="line">        end for</span><br><span class="line">    end while</span><br><span class="line">end function</span><br></pre></td></tr></table></figure></p>
+<p>这个算法确保可以终止。<br>最坏情况复杂度为 <code>O(M^2)</code>，<br>当后端数量与查询表大小相当且所有的后端被哈希成相同的 <code>permutation</code>。<br>为了避免这种情况，我们总是选择 <code>M</code> 使 <code>M &gt;&gt; N</code>。<br>平均复杂度为 <code>O(MlogM)</code>，<br>因为步骤 <code>n</code> 我们期望算法尝试 <code>M/(M-n)</code> 步去查找一个空白的候选位置，<br>这样总的查找步数就是 <code>sum(M/n, n = 1...M)</code>。<br>每个后端在查询表中拥有 <code>floor(M/N)</code> 或者 <code>ceil(M/N)</code> 个项。<br>因为查询表中不同后端最多的差异项为1。<br>实际中，我们选择 <code>M</code> 大于 <code>100*N</code>，来确保哈希空间内最多有1%的差异。<br>另外产生随机排列的算法，比如 Fisher-Yates Shuffle[20]，<br>用更多的状态产生更好排列，同样也很有效。</p>
+<p><strong>表 1</strong> 一个一致性查询表的示例</p>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>B0</th>
+<th>B1</th>
+<th>B2 </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>3</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>2</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>4</td>
+<td>4</td>
+<td>5</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>6</td>
+<td>6 </td>
+</tr>
+<tr>
+<td>4</td>
+<td>5</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2</td>
+<td>3</td>
+<td>1</td>
+</tr>
+<tr>
+<td>6</td>
+<td>6</td>
+<td>5</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p>后端的列表</p>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>Before</th>
+<th>Alfter  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>B1</td>
+<td>B0</td>
+</tr>
+<tr>
+<td>1</td>
+<td>B0</td>
+<td>B0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>B1</td>
+<td>B0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>B0</td>
+<td>B0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>B2</td>
+<td>B2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>B2</td>
+<td>B2</td>
+</tr>
+<tr>
+<td>6</td>
+<td>B0</td>
+<td>B2</td>
+</tr>
+</tbody>
+</table>
+<p>查询表在 B1 移除前后</p>
+<p>我们使用例子如表1，来展示 Maglev 哈希的工作流程。<br>假设有三个后端：  <code>B0</code>, <code>B1</code>,  <code>B2</code>， 查询表的大小为7，<br>同时<code>(offset, skip)</code> 分别为 (3,4), (0,2), (3,1)。<br>生成排列表为表1的上，查询表在 B1 移除前后的变化如表1的下。<br>如例子所示，查询表在包含/不包含B1的情况下都较均衡。<br>在B1移除之后，除了更新所有包含B1的条目，只要再更新条目6即可。<br>实际应用中，在大的查询标下， Maglev 哈希能fairly的应对后端的变更恢复，见 5.3 章节。</p>
+<h1 id="4-操作经验"><a href="#4-操作经验" class="headerlink" title="4. 操作经验"></a>4. 操作经验</h1><p>Maglev 作为一个高度复杂的分布式系统，已经在 Google 服役了6年。<br>在全球范围的运作中，我们学到了很多经验。<br>本章描述了这些年在适应我们需求的变更中 Maglev 的进化过程，<br>以及一些用来监控调试系统的工具。</p>
+<h2 id="4-1-Maglev-的进化"><a href="#4-1-Maglev-的进化" class="headerlink" title="4.1 Maglev 的进化"></a>4.1 Maglev 的进化</h2><p>今天的 Maglev 和原始的系统已经有诸多的不同。<br>许多的变化，例如 IPv6 的支持，因为是可扩展的软件架构使变化非常平滑。<br>本节谈论了两个自诞生以来的实现和部署的最大变化。</p>
+<h3 id="4-1-1-故障恢复"><a href="#4-1-1-故障恢复" class="headerlink" title="4.1.1 故障恢复"></a>4.1.1 故障恢复</h3><p>最早的 Maglev 机器成对地部署以应对故障恢复能力，<br>就如同被他们替代的硬件负载均衡器。<br>通常情况下只有活跃的机器才提供服务。<br>当活跃的机器变成不健康时，它的备机就会开始服务。<br>得益于 Maglev 哈希，这一过程通常不会造成连接中断，<br>但是这样部署有一些弊端。<br>首先浪费资源，它总是有一般的机器处于空闲状态。<br>同时单台机器的能力也阻碍我们扩展任何的 VIP。<br>最后，协调活跃和备份的机器也很复杂。<br>这种部署中，机器的宣告者会监控彼此的健康度和服务优先级，<br>在失去对方的时候提升自己BGP的优先级及其他多种机制。</p>
+<p>在迁移到 ECMP 模型之后我们得到一大容量、效率以及操作便利上的益处。<br>同时 Maglev 哈希继续保护我们应对偶尔的 ECMP 抖动，<br>我们可以最大化路由的 ECMP 大小成倍地提升一个VIP的容量，<br>同时所有的机器都能被充分利用。</p>
+<h3 id="4-1-2-包处理过程"><a href="#4-1-2-包处理过程" class="headerlink" title="4.1.2 包处理过程"></a>4.1.2 包处理过程</h3><p>原来 Maglev 使用的 Linux 内核协议栈处理包。<br>必须通过内核socket 与网卡交互，<br>这会因为硬件中断和软件中断、上下文切换、系统调用[26]等给处理过程带来很大的负担。<br>每个包必须从内核态拷贝到用户态，处理完再拷贝回去，也增加了很多负担。<br>Maglev 并不需要 TCP/IP 栈，只需要为每个包寻找一个合适的后端以及用 GRE 封包即可。<br>因此我们利用了 bypass kernel 的机制之后，在不削减功能的情况下<br>极大地改善了性能 —— 每台 Maglev 机器的吞吐量提高了 5 倍。</p>
+<h3 id="4-2-VIP-匹配"><a href="#4-2-VIP-匹配" class="headerlink" title="4.2 VIP 匹配"></a>4.2 VIP 匹配</h3><p>Google 生产环境的网络，每个集群都给一个外网 IP 的前缀用来全球路由。<br>例如， 如图6， 对于集群C1 拥有 74.125.137.0/24 的前缀。<br>一个相同的服务在另外一个集群配置了另外的VIP，<br>用户通过 DNS 来访问他们。<br>例如，Service1 在 C1中配置为 74.125.137.1, C2中为 173.194.71.1。</p>
+<p> <img src="/assets/img/maglev/cbe69316-d0fd-469a-9692-95948f0cfb51.jpg" alt="Alt pic"> </p>
+<p>Google 拥有很多集群的级别，服务的不同的 VIP。<br>同一个级别的集群拥有相同的前缀长度，但是不同级别的集群长度可能不一样。<br>有时紧急情况下，我们需要利用 Maglev 封包将流量重定向到其他的集群中。<br>因此，我们需要目标 Maglev 能够正确识别从任意其他集群来的流量。<br>一种可行的方案是在所有可能收到重定向流量的集群中定义所有 VIP，<br>但是会有同步和可扩展性的问题。</p>
+<p>取而代之，我们实现了一个特殊的编号规则和一个特别的 VIP 匹配机制来解决这个问题。<br>对于每个集群级别，我们赋予每个 VIP 相同的后缀(所有当前相同级别的集群都一致)。<br>然后我们使用一个前缀/后缀匹配机制来匹配 VIP。<br>首先，进来的包经过最长前缀匹配，以决定目标是哪个集群级别。<br>然后在特定集群级别中，经过最长后缀匹配决定那个后端池。<br>为了减少在严格时间尺度下需要全局同步的配置量，<br>拥有相同前缀的同级别新集群创建是，我们在 Maglev 预先配置了相应集群级别足够的前缀组.<br>这样 Maglev 可以正确的处理原始目的是陌生集群的重定向流量。</p>
+<p>结果，每个 VIP 都会配置为 <prefix group,="" ip="" suffix,="" port,="" protocol=""> 的元组。<br>例如图6，假设集群 C2 和 C3 同属于一个级别，<br>如果一个被C2接收到的数据包目的是 173.194.71.1，<br>但是C2 的 Maglev 并无法确认可服务的后端时，<br>它会封包之后，透过隧道传给 C3 相同服务的 VIP(173.194.72.1)。<br>然后 C3 的 Maglev 解包之后用前缀/后缀匹配包内的 VIP 得到是传给 Service1 的,<br>然后数据包被 C3 的后端正确处理。</prefix></p>
+<p>这个 VIP 匹配机制是为 Google 生产环境部署特定的，<br>但是它为软件负载均衡器提供了一种用于快速原型匹配和迭代的良好范例。</p>
+<h2 id="4-3-分片处理"><a href="#4-3-分片处理" class="headerlink" title="4.3 分片处理"></a>4.3 分片处理</h2><p>截至目前，本文还未涉及到 IP 分片。<br>分片处理需要特别的技巧，因为 Maglev 为大部分 VIP 提供的是五元组哈希，<br>但是分片信息并不包含五元组所需的全部信息。<br>例如，一个大的报文被分成两个分片，<br>第一个分片包含 L3 和 L4 的头，但是第二个分片只包含 L3 的头。<br>因此当 Maglev 接收到非首个的分片时，它并没有办法单纯依据包头来正确决定如何转发。</p>
+<p>为了正确处理分片，Maglev 必须符合两个要求。<br>首先，所有相同数据报文的分片必须被路由到同一台 Maglev 上。<br>其次，Maglev 必须能为非分片、首个分片和非首个分片选择同一个后端。</p>
+<p>通常，我们并不能依赖 Maglev 前面的硬件设备来满足第一个条件。<br>例如，有些路由器为首个分片做五元组哈希但是为非首分片做三元组哈希。<br>我们因此需要在 Maglev 中实现一个通用的满足任何分片哈希行为的解决方案。<br>每个 Maglev 配置了一个特殊的后端池，包含所有的 Maglev 机器。<br>一旦接收到首个分片， Maglev 用 L3 的头计算三元组哈希，<br>然后根据哈希值选择特定的 Maglev 作为后端进行转发。<br>因为所有属于相同报文的分片总是有相同的三元组，<br>能够保证他们都被重定向给相同的 Maglev。<br>我们使用 GRE recusion control 字段，确保分片只能被重定向一次。</p>
+<p>为了满足第二个条件， Maglev 为未分片数据包和第二跳的首分片(通常在不同的 Maglev 实例上) 使用相同的后端决策算法。<br>它维护了一个固定大小的分片表，记录了首分片的转发决策。<br>当同一台 Maglev 收到一个第二跳非首分片，<br>会从分片表中查找，若匹配则立即转发；<br>否则，会缓存到分片表中，直到首分片收到或者老化。</p>
+<p>这种方法有两种限制：<br>首先导致分片被额外传输一次，有可能会导致数据包乱序。<br>另外需要额外的内存来缓存非首分片。<br>因为网络中任何地方都可能导致包乱序，<br>我们需要依赖后端来处理乱序包。<br>实际中一个极少数 VIP 允许分片报文，<br>我们很容易就能提供一个足够大的分片表来处理这些。</p>
+<h2 id="4-4-监控和调试"><a href="#4-4-监控和调试" class="headerlink" title="4.4 监控和调试"></a>4.4 监控和调试</h2><p>和监控其他生产系统一样，我们监控每个 Maglev 机器的健康程度和行为。<br>例如，我们使用了黑盒监控和白盒监控。<br>我们的黑盒监控包含遍布全世界的 Agent，周期性地检查 VIP 的可访问性和<br>延迟。<br>对于白盒监控，每个 Maglev 都会利用 HTTP Server 导出一些指标，<br>然后监控系统周期性的拉取并计算服务状态信息。<br>当出现异常行为时监控系统会发报警。</p>
+<p>由于 Maglev 的分布式特性，从路由器到 Maglev 到服务存在着多条路径。<br>但是，调试时，我们能够用特定的数据包来识别具体的路径。<br>因此我们开发了 packet-tracer，类似于 X-Trace[21]。<br>Packet-tracer 构造和发送特殊的 Maglev 能够识别的三层和四层的数据包。<br>数据包内容包含需要 Maglev 发送调试信息的接收者的 IP。<br>数据包的目的通常是一个特殊的 VIP，可能被正确地路由到我们的前端集群。<br>当 Maglev 接收到 Packet-tracer 的数据包时，它会照常转发，但是同时会把<br>包含当前机器名、选择的后端等调试信息发送给数据包指定的接收者。<br>Packet-tracer 数据包会被 Maglev 限速，因此他们处理比较耗时。<br>这个工具在调试生产环境的问题非常管用，<br>特别是发生分片时有多台 Maglev 在链路中。</p>
+<h1 id="5-评估"><a href="#5-评估" class="headerlink" title="5. 评估"></a>5. 评估</h1><p>本章我们评估了 Maglev 的效率和性能。<br>我们展示了某个 Google 生产集群以及一些微基准测试的评估结果。</p>
+<h2 id="5-1-负载均衡"><a href="#5-1-负载均衡" class="headerlink" title="5.1 负载均衡"></a>5.1 负载均衡</h2><p>作为一个网络负载均衡器， Maglev 的主要职责就是把流量均衡到多台后端服务上。<br>为了展示 maglev 的负载均衡的性能，<br>我们收集了一个位于欧洲集群的 458 个 endpoint 的 cps (Connections Per Second)。<br>这个数据是多个HTTP服务的聚合，包含搜索服务。<br>数据收集粒度为5分钟，负载用每天的平均 cps 标准化。图7 显示了某天所有 endpoint 的负载的平均值和标准差。<br>流量负载的显示了一天的趋势。相对于平均负载，标准差一直都很小，变异系数大多数时间在 6% ~ 7%之间。</p>
+<p> <img src="/assets/img/maglev/84c97589-6f51-4e76-817b-b176a0411f89.jpg" alt="Alt pic"> </p>
+<p>图7同时显示了每个时间点最高负载与平均负载的冗余系数。<br>冗余系数非常重要，我们总是要确保最繁忙的节点有足够的能力处理所有流量。<br>冗余系数在 60% 的时间段小于 1.2。<br>在非峰荷时段冗余系数比较高，这是合理的，<br>因为低流量时比较难以平衡负载。<br>另外，非峰荷时段高冗余系数也不需要额外的 Maglev 机器。</p>
+<h2 id="5-2-单机吞吐量"><a href="#5-2-单机吞吐量" class="headerlink" title="5.2 单机吞吐量"></a>5.2 单机吞吐量</h2><p>因为每台 Maglev 机器通过 ECMP 收到差不多的流量，<br>总的吞吐量的估算可以通过机器数量乘以单机吞吐量简单计算得到。<br>单机承担的能力越高，所需要的机器就越少。<br>因此单机吞吐量是整个系统效率的关键。</p>
+<p>Maglev 单机的吞吐量受很多因素的影响，包括处理线程的个数、<br>网卡速度、流量类型等。<br>本节我们在一系列条件下透过一小个试验台来评估单台 Maglev 处理数据包的能力。<br>除非特别说明，所有的实验机器均为以下配置：<br>两个当前服务端的8核CPU，1个万兆网卡和 128GB 内存。<br>我们只给 Maglev 使用1个CPU，其他的包含操作系统，在另外一个CPU上运行。<br>实验台包含位于同一个以太网域内的两个发送端、两个接收端和1台Maglev机器。<br>发送端缓慢地增加发送速率，<br>同时记录Maglev 处理的 pps，记录最大值和何时开始丢包。<br>我们使用两个发送端是为了确保 Maglev 能够过载。</p>
+<h3 id="5-2-1-Kernel-Bypass"><a href="#5-2-1-Kernel-Bypass" class="headerlink" title="5.2.1 Kernel Bypass"></a>5.2.1 Kernel Bypass</h3><p>试验中，我们让 Maglev 跑在 Linux 主线版本内核(即 vanilla kernel)协议栈和跑在 Kernel bypass 模式下，<br>对比 Maglev 的吞吐量。<br>发送端从不同的源端口发送最小的UDP包，以确保 Maglev 的 Steering<br>模块中不会被转给一个处理线程处理。<br>由于测试环境的限制，最小的 UDP包大小为 52 字节，略大于理论上的以太网内最小包大小。<br>同时也更改线程的数量，每个线程绑到固定的核上（与生产环境一致）以保证性能。<br>我们用了1个核来处理 Steering 和 Muxing，因此最多有7个工作线程。<br>包含和不包含 Kernel bypass 的测试结果见图8.</p>
+<p> <img src="/assets/img/maglev/cd73a348-3ac6-4581-9509-a87cf75376a0.jpg" alt="Alt pic"> </p>
+<p>图中显示 Maglev 在 Kernel Bypass 下拥有明显的性能优势。在不超过4个线程时， Maglev 是瓶颈，吞吐量随线程数线性增长。<br>当超过4个线程时，网卡成为了瓶颈。<br>另一方面，在用协议栈时， Maglev 总是瓶颈，能达到的最大吞吐量只有 Kernel Bypass 的 30%不到。</p>
+<h3 id="5-2-2-流量类型"><a href="#5-2-2-流量类型" class="headerlink" title="5.2.2 流量类型"></a>5.2.2 流量类型</h3><p>依据处理线程中的代码执行路径， Maglev 处理不同类型流量的速度有所差别。<br>比如，一个线程需要为 TCP 的SYN包 选择一个后端并记录到连接追踪表中，<br>对于非 SYN 包只需要查表即可。<br>本节测试中，我们测试 Maglev 处理不同 TCP 类型包能力。</p>
+<p>有三种类型需要考虑： SYN、非SYN以及固定五元组。<br>对于SYN和非SYN 实验，只发送 SYN 和 非 SYN 包。<br>SYN 包实验显示 Maglev 在应对 SYN Flood 时的表现，<br>非 SYN 包显示 Maglev 在处理常规 TCP 流量的表现。<br>对于固定五元组的实验，所有数据包包含相同三层和四层的头，<br>这个特殊的用例是因为 Steering 模块通常尝试将相同的五元组指派给同一个线程处理，<br>只有当目标线程的处理队列满了之后才会指派给其他线程。<br>发送SYN和非SYN 发送端变换不同的源端口来产生不同的五元组，<br>但是对于固定五元组，则使用固定的端口。<br>这些实验总是发送最小的 TCP 包 —— 即 64 字节。</p>
+<p> <img src="/assets/img/maglev/ecf106d0-185f-4e64-9f9b-d50d869a3ba6.jpg" alt="Alt pic"> </p>
+<p>如图9， 这些试验中，在非 SYN 和固定五元组中， 5个处理线程就达到网卡的极限。<br>但是对于 SYN 包， Maglev 需要 6 个线程才能跑满网卡。<br>因为 Maglev 需要为每个 SYN 选择一个后端。<br>Maglev 在固定五元组也拥有很高的性能，表明 Steering 模块<br>可以高效地处理非离散的数据包。<br>因为所有的包拥有相同的五元组，那么他们连接追踪表的信息总是在 CPU Cache中，<br>保证了最高的吞吐量。<br>对于非 SYN 包，表查找过程由不时地Cache miss，因此在5线程以内，性能略低于固定五元组。</p>
+<h3 id="5-2-3-网卡速度"><a href="#5-2-3-网卡速度" class="headerlink" title="5.2.3 网卡速度"></a>5.2.3 网卡速度</h3><p>在前面的试验中， 网卡在5个线程时就跑满了。<br>为了测出 Maglev 的所有能力，这个实验使用了更快的网卡来评估吞吐量。<br>为此我们使用了 40Gbps 网卡代替10Gbps，然后与 5.2.1 节一样的测试环境。<br>结果见图10。当不超过5线程时， 40Gbps网卡只能略高于10Gbps网卡，因为40 Gbps的芯片比 10Gbps好。<br>但是对于40Gbps，当先线程到7个时，吞吐量的增长率没有下降。<br>因为网卡不再是瓶颈，这张图显示了Maglev在当前硬件条件下的性能极限——略高于 15Mbps。<br>实际上，瓶颈是 Maglev 的Steering 模块，未来切换到40Gbps网卡时我们会继续优化。</p>
+<p> <img src="/assets/img/maglev/4d4244e8-cd4d-4d82-98d5-a80180f885d4.jpg" alt="Alt pic"> </p>
+<h2 id="5-3-一致性哈希"><a href="#5-3-一致性哈希" class="headerlink" title="5.3 一致性哈希"></a>5.3 一致性哈希</h2><p>这个实验中我们对比评估 <em>Karger</em>[28]、 <em>Rendezvous</em>[38] 哈希和 Maglev 哈希的性能。<br>我们关注两个指标： 负载均衡的效率和后端变更的恢复能力。</p>
+<p>为了评估这些方法的效率，我们用每个方法构建查询表，然后统表计设置后端实例的条目数。<br>我们设定后端数目为1000个，查询表的大小为65537和655373。<br>对于 Karger 我们设定视图数目为1000。<br>图11展示了每种方法的表大小、每个后端的最小和最大条目比例。</p>
+<p> <img src="/assets/img/maglev/5b99a425-e144-4baa-bd73-6287b409003f.jpg" alt="Alt pic"> </p>
+<p>正如期望的，无论表达小如何，Maglev 哈希提供了几乎完美的负载均衡特性。<br>当表大小为65537时， Karger 和 Rendezvous 为了应对不平衡的流量，需要后端的冗余分别达到29.7%和49.5%。<br>当表大小为655373 是，数目降为 10.3% 和 12.3%。<br>因为每个VIP都需要查询表，因此需要控制表大小。<br>因此 Karger 和 Rendezvous 并不能满足 Maglev 负载均衡需求。</p>
+<p>另一个重要的指标是一致性哈希应对后端变化的应对能力。<br>Karger 和 Rendezvous 保证当某些后端失效， 剩余的后端均不会有影响。<br>因此我们只需要评估 Maglev 哈希这个指标即可。<br>图12 展示了不同比例后端失效的情况，表中需要变化的条目个数。<br>我们同样设定后端数目为1000. 对于每个失败数 <code>k</code>， 我们随机从池中移除 <code>k</code> 个后端，<br>然后重新生成表并计算表变更的数目。<br>对于每个 k，我们重复了 200 次实验，然后计算平均值。</p>
+<p> <img src="/assets/img/maglev/a338aa2f-df9b-4973-857f-305c70e6ed9f.jpg" alt="Alt pic"> </p>
+<p>图12 展示随着同时失败数目的增加，需要变更条目数目的比例也逐步增加。<br>Maglev 哈希在表大小更大的情况应对恢复的能给力越好。<br>实际应用中我们使用了 65537 作为表的默认大小因为我们发现同时失败的后端数目非常少见。<br>同时我们还有连接追踪做保证。<br>另外，微基准测试表明，查询表生成时间在表大小从65537到655373时，从1.8ms增长到22.9ms，这也限制了我们无节制增加表大小。</p>
+<h1 id="6-相关工作"><a href="#6-相关工作" class="headerlink" title="6. 相关工作"></a>6. 相关工作</h1><p>不像传统的硬件负载均衡器[1,2,3,5,9,12,13]， Maglev 是一个运行在通用服务器上的分布式软件系统。<br>硬件负载均衡器通常需要以主备的形式成对部署。<br>Maglev 以多主的形式更加高效和更富有弹性。<br>而且，升级硬件负载均衡器的能力需要额外的购买机器<br>以及物理部署，使得按需调整能力更加困难。<br>但是，Maglev 的能力可以简单地通过增加和减少 Maglev 节点<br>进行调节，而无须中断服务。<br>有些硬件服务商也提供了虚拟化环境的负载均衡软件，但Maglev 相比较拥有更高的吞吐量。</p>
+<p>Ananta[34] 是一个分布式的软件负载均衡器，与 Maglev 类似，<br>它也是通过 ECMP 来扩容，以及使用一个流表来获得连接亲缘性。<br>然后，它并没有提供具体的机制来柔性处理负载均衡池的变更，<br>同时它也没有特别优化单机性能。<br>Maglev 没有提供类似 Ananta HostAgent 这种 NAT 服务，<br>但是有一个外部系统(本文并未涉及)来达到类似功能。<br>Ananta 允许最多内部VIP 流量绕过负载均衡器，<br>Maglev 没有提供此功能是因为本身已经拥有足够的能力处理内部流量。<br>Embrane[4] 是一个为虚拟环境开发的类似系统。<br>但是它吞吐量优化受限于虚拟环境的限制。<br>Duet[22] 是一个硬件和软件的混合负载均衡器，旨在解决纯软的低吞吐量问题。<br>Maglev 有可能达到较高的性能，因此混合模式变得没有必要。</p>
+<p>还有许许多多通用负载均衡软件包，最流行的如 NGINX[14]、 HAProxy[7] 以及 LVS[11]。<br>他们通常运行在单机上，但是也可以通过 ECMP 组来多机部署，达到横向扩展的能力。<br>他们都提供一致性哈希的机制。<br>与 Maglev 相比，他们就如同 [28] 和 [38] 一样，最小打断优先于公平负载均衡。<br>因为他们的设计目标是可移植性，所以并没有花大力气优化性能。</p>
+<p>一致性哈希[28] 和 Rendezvous 哈希 [28] 提出的原始目的是为了协调分布式缓存。<br>两种方法都能保证回弹能力，即当某些后端移除，只有这些后端相关的条目会被更新。<br>但是他们并没有很好的提供对LB来说非常重要的负载均衡性。<br>相对的， Maglev 一致性哈希方法能够达到完美的均衡以及很少的回弹代价，<br>实际中也很好的与连接追踪结合。<br>另一种实现一致性哈希的方法是分布式哈希，类似于 Chord[37]，<br>但是这会给系统带来额外的延迟和复杂度。</p>
+<p>Maglev 中一些性能优化手段从上个世纪90年代已经出现。<br>Smith 等[36] 建议通过减少中断和内存拷贝来提供吞吐量。<br>Mogul 等[33] 开发了基于轮询机制来避免收到中断产生的活锁。<br>Edwards 等[19] 探寻了在用户态处理网络的方法，但是并没有完全绕过内核。<br>Marinos 等[31] 显示绕过内核的专门的用户态协议栈能够显著地提高应用的吞吐量。<br>Hanford 等[25] 提出跨多个CPU 核分发包处理，提高 CPU 缓存命中率。<br>CuckooSwitch [41] 是一个高性能2层软件交换机。<br>它的一个核心技术就是通过批量处理和预取的方式降低内存访问延迟。<br>RouteBricks[18] 解释了如何通过并行处理包来高效地利用多核CPU。</p>
+<p>最近业界有一些内核旁路的技术，包括 DPDK[8]、 OpenOnload[15]、netmap[35] 以及<br>PF_RING[17] 等。<br>[10] 是对这些流量的内核旁路方案技术的良好总结。<br>这些技术可以非常有效地提高包处理速度，但是他们都有局限性。<br>例如 DPDK 和 OpenOnload 都与具体网卡型号/提供商绑定，<br>netmap 和 PF_RING 都需要修改 Linux 内核。<br>在 Maglev 中，我们实现了一个灵活的 I/O 层，让我们无须修改内核并能够方便地切换不同的网卡。<br>像其他技术， 一旦 Maglev 启动之后，它会接管网卡，然后使用 TAP 设备将数据包注回内核。</p>
+<p>最近，GPU 在高速包处理中越来越流行[24, 39]。<br>但是， Kalia 等[27] 最近发现基于 CPU 的解决方案也能达到类似的性能，<br>而且在正确实现的情况下资源利用更高效。 </p>
+<h1 id="7-结论"><a href="#7-结论" class="headerlink" title="7. 结论"></a>7. 结论</h1><p>本文展示了 Maglev, 一个高效、可靠、可扩展和灵活的软件网络负载均衡器。<br>我们通过 ECMP 来横向扩展 Maglev，同时每台机器都能在万兆网卡下达到线速，<br>在高速增长的业务需求下提供划算的性能。<br>我们结合连接追踪和 Maglev 哈希，将相同的连接映射到同一个后端。<br>多年来大规模地应用让我们高效地把控网站，<br>以及在需求增长或者未来新需求下快速反应。</p>
+<h1 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h1><p>略</p>
+<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><ul>
+<li>[1] A10. <a href="http://www.a10networks.com" target="_blank" rel="noopener">http://www.a10networks.com</a>.</li>
+<li>[2] Array networks. <a href="http://www.arraynetworks.com" target="_blank" rel="noopener">http://www.arraynetworks.com</a>.</li>
+<li>[3] Barracuda. <a href="http://www.barracuda.com" target="_blank" rel="noopener">http://www.barracuda.com</a>.</li>
+<li>[4] Embrane. <a href="http://www.embrane.com" target="_blank" rel="noopener">http://www.embrane.com</a>.</li>
+<li>[5] F5. <a href="http://www.f5.com" target="_blank" rel="noopener">http://www.f5.com</a>.</li>
+<li>[6] Google cloud platform. <a href="http://cloud.google.com" target="_blank" rel="noopener">http://cloud.google.com</a>.</li>
+<li>[7] Haproxy. <a href="http://www.haproxy.org" target="_blank" rel="noopener">http://www.haproxy.org</a>.</li>
+<li>[8] Intel dpdk. <a href="http://www.dpdk.org" target="_blank" rel="noopener">http://www.dpdk.org</a>.</li>
+<li>[9] Kemp. <a href="http://www.kemptechnologies.com" target="_blank" rel="noopener">http://www.kemptechnologies.com</a>.</li>
+<li>[10] Kernel bypass. <a href="http://blog.cloudflare.com/kernel-bypass" target="_blank" rel="noopener">http://blog.cloudflare.com/kernel-bypass</a>.</li>
+<li>[11] Linux virtual server. <a href="http://www.linuxvirtualserver.org" target="_blank" rel="noopener">http://www.linuxvirtualserver.org</a>.</li>
+<li>[12] Load balancer .org. <a href="http://www.loadbalancer.org" target="_blank" rel="noopener">http://www.loadbalancer.org</a>.</li>
+<li>[13] Netscaler. <a href="http://www.citrix.com" target="_blank" rel="noopener">http://www.citrix.com</a>.</li>
+<li>[14] Nginx. <a href="http://www.nginx.org" target="_blank" rel="noopener">http://www.nginx.org</a>.</li>
+<li>[15] Openonload. <a href="http://www.openonload.org" target="_blank" rel="noopener">http://www.openonload.org</a>.</li>
+<li>[16] F. Chen, R. K. Sitaraman, and M. Torres. End-user mapping:<br>Next generation request routing for content delivery. In Proceedings<br>of SIGCOMM, 2015.</li>
+<li>[17] L. Deri. Improving passive packet capture: Beyond device<br>polling. In Proceedings of SANE, 2004.</li>
+<li>[18] M. Dobrescu, N. Egi, K. Argyraki, B.-G. Chun, K. Fall, G. Iannaccone,<br>A. Knies, M. Manesh, and S. Ratnasamy. Routebricks:<br>Exploiting parallelism to scale software routers. In Proceedings<br>of SOSP, 2009.</li>
+<li>[19] A. Edwards and S. Muir. Experiences implementing a high performance<br>tcp in user-space. In Proceedings of SIGCOMM, 1995.</li>
+<li>[20] R. A. Fisher and F. Yates. Statistical tables for biological, agricultural<br>and medical research. Edinburgh: Oliver and Boyd,1963.</li>
+<li>[21] R. Fonseca, G. Porter, R. H. Katz, S. Shenker, and I. Stoica. Xtrace:<br>A pervasive network tracing framework. In Proceedings of<br>NSDI, 2007.</li>
+<li>[22] R. Gandhi, H. H. Liu, Y. C. Hu, G. Lu, J. Padhye, L. Yuan, and<br>M. Zhang. Duet: Cloud scale load balancing with hardware and<br>software. In Proceedings of SIGCOMM, 2014.</li>
+<li>[23] P. Gill, N. Jain, and N. Nagappan. Understanding network failures<br>in data centers: Measurement, analysis, and implications. In<br>Proceedings of SIGCOMM, 2011.</li>
+<li>[24] S. Han, K. Jang, K. Park, and S. Moon. Packetshader: A gpuaccelerated<br>software router. In Proceedings of SIGCOMM, 2010.</li>
+<li>[25] N. Hanford, V. Ahuja, M. Balman, M. K. Farrens, D. Ghosal,<br>E. Pouyoul, and B. Tierney. Characterizing the impact of endsystem<br>affinities on the end-to-end performance of high-speed<br>flows. In Proceedings of NDM, 2013.</li>
+<li>[26] V. Jacobson and B. Felderman. Speeding up networking.<br><a href="http://www.lemis.com/grog/Documentation/vj/lca06vj.pdf" target="_blank" rel="noopener">http://www.lemis.com/grog/Documentation/vj/lca06vj.pdf</a>.</li>
+<li>[27] A. Kalia, D. Zhou, M. Kaminsky, and D. G. Andersen. Raising<br>the bar for using gpus in software packet processing. In Proceedings<br>of NSDI, 2015.</li>
+<li>[28] D. Karger, E. Lehman, T. Leighton, R. Panigrahy, M. Levine,<br>and D. Lewin. Consistent hashing and random trees: Distributed<br>caching protocols for relieving hot spots on the world wide web.<br>In Proceedings of ACM Symposium on Theory of Computing,1997.</li>
+<li>[29] C. Labovitz. Google sets new internet record.<br><a href="http://www.deepfield.com/2013/07/google-sets-new-internetrecord/" target="_blank" rel="noopener">http://www.deepfield.com/2013/07/google-sets-new-internetrecord/</a>.</li>
+<li>[30] C. Labovitz, S. Iekel-Johnson, D. McPherson, J. Oberheide, and<br>F. Jahanian. Internet inter-domain traffic. In Proceedings of SIGCOMM,2010.</li>
+<li>[31] I. Marinos, R. N. Watson, and M. Handley. Network stack specialization<br>for performance. In Proceedings of SIGCOMM, 2014.</li>
+<li>[32] J. C. McCullough, J. Dunagan, A. Wolman, and A. C. Snoeren.<br>Stout: An adaptive interface to scalable cloud storage. In Proceedings<br>of USENIX ATC, 2010.</li>
+<li>[33] J. C. Mogul and K. K. Ramakrishnan. Eliminating receive livelock<br>in an interrupt-driven kernel. In Proceedings of USENIX<br>ATC, 1996.</li>
+<li>[34] P. Patel, D. Bansal, L. Yuan, A. Murthy, A. Greenberg, D. A.<br>Maltz, R. Kern, H. Kumar, M. Zikos, H. Wu, C. Kim, and<br>N. Karri. Ananta: Cloud scale load balancing. In Proceedings<br>of SIGCOMM, 2013.</li>
+<li>[35] L. Rizzo. netmap: A novel framework for fast packet i/o. In<br>Proceedings of USENIX Security, 2012.</li>
+<li>[36] J. Smith and C. Traw. Giving applications access to gb/s networking.<br>Network, IEEE, 7(4):44–52, 1993.</li>
+<li>[37] I. Stoica, R. Morris, D. Karger, M. F. Kaashoek, and H. Balakrishnan.<br>Chord: A scalable peer-to-peer lookup service for internet<br>applications. In Proceedings of SIGCOMM, 2001.</li>
+<li>[38] D. G. Thaler and C. V. Ravishankar. Using name-based mappings<br>to increase hit rates. IEEE/ACM Transactions on Networking,<br>6(1):1–14, 1998.</li>
+<li>[39] M. Varvello, R. Laufer, F. Zhang, and T. Lakshman. Multi-layer<br>packet classification with graphics processing units. In Proceedings<br>of CoNEXT, 2014.</li>
+<li>[40] K. V. Vishwanath and N. Nagappan. Characterizing cloud computing<br>hardware reliability. In Proceedings of SoCC, 2010.</li>
+<li>[41] D. Zhou, B. Fan, H. Lim, M. Kaminsky, and D. G. Andersen.<br>Scalable, high performance ethernet forwarding with cuckooswitch.<br>In Proceedings of CoNEXT, 2013.</li>
+</ul>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tech/">tech</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2016/nginx-slab-code-read/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">nginx 共享内存分配机制探究</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2015/commutativity-sosp13/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">可扩展交换性原则：多核多处理下可扩展性软件开发</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

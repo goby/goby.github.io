@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>Dynamic tracing Go program | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="go,trace,uprobe,performance tuning">
+    <meta name="description" content="About dynamic tracingBefore do any trace with Linux tracing tools, we should read this paper by Jim Keniston, et:Ptrace, Utrace, Uprobes: Lightweight, Dynamic Tracing of User Apps. What is uprobesupro">
+<meta name="keywords" content="go,trace,uprobe,performance tuning">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dynamic tracing Go program">
+<meta property="og:url" content="https://blog.gobyoung.com/2017/dynamic-tracing-go-program/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="About dynamic tracingBefore do any trace with Linux tracing tools, we should read this paper by Jim Keniston, et:Ptrace, Utrace, Uprobes: Lightweight, Dynamic Tracing of User Apps. What is uprobesupro">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dynamic tracing Go program">
+<meta name="twitter:description" content="About dynamic tracingBefore do any trace with Linux tracing tools, we should read this paper by Jim Keniston, et:Ptrace, Utrace, Uprobes: Lightweight, Dynamic Tracing of User Apps. What is uprobesupro">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Dynamic tracing Go program</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Dynamic tracing Go program</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-08-22T13:22:21.000Z" itemprop="datePublished" class="page-time">
+  2017-08-22
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#About-dynamic-tracing"><span class="post-toc-number">1.</span> <span class="post-toc-text">About dynamic tracing</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#What-is-uprobes"><span class="post-toc-number">2.</span> <span class="post-toc-text">What is uprobes</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#How-does-Uprobes-work"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">How does Uprobes work</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#How-does-Uretprobes-work"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">How does Uretprobes work</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#How-to-use-Uprobes"><span class="post-toc-number">3.</span> <span class="post-toc-text">How to use Uprobes</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Synopsis"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">Synopsis</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#How-to-get-function-offset"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">How to get function offset</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Setup-uprobe"><span class="post-toc-number">3.3.</span> <span class="post-toc-text">Setup uprobe</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Trace-Result"><span class="post-toc-number">3.4.</span> <span class="post-toc-text">Trace Result</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Further-doing"><span class="post-toc-number">3.5.</span> <span class="post-toc-text">Further doing</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#BUG"><span class="post-toc-number">4.</span> <span class="post-toc-text">BUG</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-dynamic-tracing-go-program"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">Dynamic tracing Go program</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-08-22 21:22:21" datetime="2017-08-22T13:22:21.000Z"  itemprop="datePublished">2017-08-22</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h2 id="About-dynamic-tracing"><a href="#About-dynamic-tracing" class="headerlink" title="About dynamic tracing"></a>About dynamic tracing</h2><p>Before do any trace with Linux tracing tools, we should read this paper by Jim Keniston, et:<br><a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.511.7870&amp;rep=rep1&amp;type=pdf" target="_blank" rel="noopener">Ptrace, Utrace, Uprobes: Lightweight, Dynamic Tracing of User Apps</a>.</p>
+<h2 id="What-is-uprobes"><a href="#What-is-uprobes" class="headerlink" title="What is uprobes"></a>What is uprobes</h2><p>uprobes is a user-space dynamic tracing tool provided in <a href="http://kernelnewbies.org/Linux_3.5#head-95fccbb746226f6b9dfa4d1a48801f63e11688de" target="_blank" rel="noopener">Linux 3.5</a> and imporved in <a href="http://kernelnewbies.org/Linux_3.14#head-ca18fd90b3cee1181d74251909e0dda6934b5add" target="_blank" rel="noopener">Linux 3.14</a>.<br><a href="http://www.brendangregg.com/blog/2015-06-28/linux-ftrace-uprobe.html" target="_blank" rel="noopener">Brendan Gregg</a> said it imspired by <a href="https://lwn.net/Articles/370423/" target="_blank" rel="noopener">Ftrace</a>, which can trace any function in kernel.</p>
+<blockquote>
+<p>  There are currently two types of user-space probes: uprobes and<br>uretprobes (also called return probes).  A uprobe can be inserted on<br>any instruction in the application’s virtual address space.  A return<br>probe fires when a specified user function returns.  These two probe<br>types are discussed in more detail later.</p>
+</blockquote>
+<p>By Jim Keniston introduced in <a href="https://gitlab.com/fche/systemtap/blob/master/runtime/linux/uprobes/uprobes.txt" target="_blank" rel="noopener">SystemTap</a>. </p>
+<h3 id="How-does-Uprobes-work"><a href="#How-does-Uprobes-work" class="headerlink" title="How does Uprobes work"></a>How does Uprobes work</h3><p>Here’s Uprobes doing[<a href="https://gitlab.com/fche/systemtap/blob/master/runtime/linux/uprobes/uprobes.txt" target="_blank" rel="noopener">link</a>]:</p>
+<ul>
+<li>user provide a binary/library and a virtual address of target function(typically the offset instead of va)</li>
+<li>Uprobes makes a copy of the probed instruction, pause the probed application, if running</li>
+<li>Replace the first byte(s) of the probed instruction with breakpoint instrument(eg, int3 on x86_64)<ul>
+<li>The same machinism of ptrace, copy-on-write, so only affects on target process</li>
+<li>Even the shared library</li>
+</ul>
+</li>
+<li>Resume the paused application</li>
+<li>When CPU hit breakpoint instrument, a trap occurs, save CPU user-mode register, and generate a SIGTRAP</li>
+<li>Uprobes accepts the SIGTRAP signal and find out associate probe</li>
+<li>Executes the associated handler, if existed, and passes the probe struct and the saved register.</li>
+<li>REMARK: handler may block, and <strong>the probed thread is stopped when handler running</strong></li>
+<li>Next, Uprobes single-steps its copy of the probed instruction and<br>resumes execution of the probed process at the instruction following<br>the probepoint</li>
+</ul>
+<h3 id="How-does-Uretprobes-work"><a href="#How-does-Uretprobes-work" class="headerlink" title="How does Uretprobes work"></a>How does Uretprobes work</h3><ul>
+<li>Same with previous section’s step 1</li>
+<li>Uprobes setup a probe at the entry to the function</li>
+<li>When funtion called, the probe hit, Uprobes save the return address</li>
+<li>Replace the return address with a <code>trampline</code> address – a piece of code that contains a breakpoint instruction</li>
+<li>When the probed function returned, the return instruction is executed, enter the <code>trampline</code> area</li>
+<li>Uprobes calls user-define handler</li>
+<li>Sets the saved instruction pointer to the saved return<br>address, and that’s where execution resumes upon return from the trap.</li>
+</ul>
+<p>Infact, tracing multi-thread application is hard, and in Go environment. The Go scheduler will<br>weave instruction on-the-fly, and change <code>%sp</code> and <code>%pc</code> on demand.</p>
+<h2 id="How-to-use-Uprobes"><a href="#How-to-use-Uprobes" class="headerlink" title="How to use Uprobes"></a>How to use Uprobes</h2><p>The document in kernel doc, <a href="https://www.kernel.org/doc/Documentation/trace/uprobetracer.txt" target="_blank" rel="noopener">Uprobe-tracer: Uprobe-based Event Tracing</a>, introduced the usage of<br>latest uprobes. </p>
+<p>Before start, we must make sure the kernel support Uprobes, please checking:</p>
+<ul>
+<li><code>CONFIG_UPROBE_EVENT=y</code> in <code>/boot/config-$(uname -r)</code><ul>
+<li>deps on kernel version, you can simply grep <code>UPROBE</code> and ensure all config is set to <code>y</code></li>
+</ul>
+</li>
+<li><code>/sys/kernel/debug/</code> directory is existing (maybe <code>mount -s debugfs</code>)</li>
+</ul>
+<p>The probes stored in <code>/sys/kernel/debug/tracing/uprobe_events</code> and<br>the details in <code>/sys/kernel/debug/tracing/events/uprobes/&lt;EVENT&gt;</code>.</p>
+<h3 id="Synopsis"><a href="#Synopsis" class="headerlink" title="Synopsis"></a>Synopsis</h3><p>Create a probe by <code>echo &lt;probe&gt; &gt; /sys/kernel/debug/tracing/uprobe_events</code>. And here’s the<br><code>&lt;probe&gt;</code> synopsis:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">==&gt;</span><br><span class="line">  p[:[GRP/]EVENT] PATH:OFFSET [FETCHARGS] : Set a uprobe</span><br><span class="line">  r[:[GRP/]EVENT] PATH:OFFSET [FETCHARGS] : Set a return uprobe (uretprobe)</span><br><span class="line">  -:[GRP/]EVENT                           : Clear uprobe or uretprobe event</span><br><span class="line"></span><br><span class="line">  GRP           : Group name. If omitted, &quot;uprobes&quot; is the default value.</span><br><span class="line">  EVENT         : Event name. If omitted, the event name is generated based</span><br><span class="line">                  on PATH+OFFSET.</span><br><span class="line">  PATH          : Path to an executable or a library.</span><br><span class="line">  OFFSET        : Offset where the probe is inserted.</span><br><span class="line"></span><br><span class="line">  FETCHARGS     : Arguments. Each probe can have up to 128 args.</span><br><span class="line">   %REG         : Fetch register REG</span><br><span class="line">   @ADDR    : Fetch memory at ADDR (ADDR should be in userspace)</span><br><span class="line">   @+OFFSET : Fetch memory at OFFSET (OFFSET from same file as PATH)</span><br><span class="line">   $stackN  : Fetch Nth entry of stack (N &gt;= 0)</span><br><span class="line">   $stack   : Fetch stack address.</span><br><span class="line">   $retval  : Fetch return value.(*)</span><br><span class="line">   $comm    : Fetch current task comm.</span><br><span class="line">   +|-offs(FETCHARG) : Fetch memory at FETCHARG +|- offs address.(**)</span><br><span class="line">   NAME=FETCHARG     : Set NAME as the argument name of FETCHARG.</span><br><span class="line">   FETCHARG:TYPE     : Set TYPE as the type of FETCHARG. Currently, basic types</span><br><span class="line">               (u8/u16/u32/u64/s8/s16/s32/s64), hexadecimal types</span><br><span class="line">               (x8/x16/x32/x64), &quot;string&quot; and bitfield are supported.</span><br><span class="line"></span><br><span class="line">  (*) only for return probe.</span><br><span class="line">  (**) this is useful for fetching a field of data structures.</span><br></pre></td></tr></table></figure>
+<p>As forward description, we can setup a uprobe or a uretprobe by a prefix with <code>p</code> or <code>r</code>.<br>For example, create a probe in offset <code>0x2794c0</code> of application <code>/home/goby/k8s-bin/kube-controller-manager</code><br>with two arguments, <code>%sp</code> for stack pointer and <code>%ax</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;p:p_syncDeployment /home/goby/k8s-bin/kube-controller-manager:0x2794c0 %sp %ax&quot; &gt;&gt; /sys/kernel/debug/tracing/uprobe_events</span><br></pre></td></tr></table></figure>
+<p>The same to uretprobes.</p>
+<p>All of these are well-understood, but what is offset?</p>
+<h3 id="How-to-get-function-offset"><a href="#How-to-get-function-offset" class="headerlink" title="How to get function offset"></a>How to get function offset</h3><p>Function offset is relative to <code>.text</code> section, we can get it by following formula:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">offset(fn) = virtual_address(fn) - virtual_address(.text) + offset(.text)</span><br></pre></td></tr></table></figure>
+<p>So we need get virtual address of target function and <code>.text</code> section.<br>We can dump the section headers to get some of them. By <code>readelf</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ readelf -S &lt;binary&gt;</span><br><span class="line"></span><br><span class="line">There are 46 section headers, starting at offset 0x494fc58:</span><br><span class="line"></span><br><span class="line">Section Headers:</span><br><span class="line">  [Nr] Name              Type             Address           Offset</span><br><span class="line">       Size              EntSize          Flags  Link  Info  Align</span><br><span class="line">  [ 0]                   NULL             0000000000000000  00000000</span><br><span class="line">       0000000000000000  0000000000000000           0     0     0</span><br><span class="line">  ...</span><br><span class="line">  [13] .text             PROGBITS         0000000000401a50  00001a50</span><br><span class="line">       0000000001315c54  0000000000000000  AX       0     0     16</span><br></pre></td></tr></table></figure>
+<p>So:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">virtual_address(.text) = 0x0000000000401a50</span><br><span class="line">offset(.text) = 0x00001a50</span><br></pre></td></tr></table></figure>
+<p>Or we can simply get the start address if target application is running:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ grep kube-controller-manager /proc/`pidof kube-controller-manager`/maps |grep r-xp</span><br><span class="line">00400000-02b21000 r-xp 00000000 fe:20 529115  /home/goby/k8s-bin/kube-controller-manager</span><br><span class="line">   |</span><br><span class="line">   \- this is the start address = virtual_address(.text) - offset(.text)</span><br></pre></td></tr></table></figure>
+<p>Finally, dump symbol table by <code>objdump</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ objdump -t &lt;binary&gt; |grep syncDeployment</span><br><span class="line"></span><br><span class="line">0000000001e92570 l     O .rodata        0000000000000008              k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeployment.func1.f</span><br><span class="line">00000000006794c0 l     F .text  0000000000000a7f              k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeployment</span><br><span class="line">000000000067b5b0 l     F .text  000000000000016c              k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeploymentStatus</span><br><span class="line">0000000000682b20 l     F .text  0000000000000063              k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).(k8s.io/kubernetes/pkg/controller/deployment.syncDeployment)-fm</span><br><span class="line">0000000000682e00 l     F .text  000000000000018d              k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeployment.func1</span><br></pre></td></tr></table></figure>
+<p>OK, pick what we need, <code>00000000006794c0</code> is the va of function. So the offset of function is <code>0x00000000006794c0 - 0x0000000000401a50 + 00001a50 = 0x2794c0</code>.</p>
+<p>And we can get other functions by these steps.</p>
+<h3 id="Setup-uprobe"><a href="#Setup-uprobe" class="headerlink" title="Setup uprobe"></a>Setup uprobe</h3><p>By following command, we setup a probe to function <code>k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeployment</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># echo &quot;p:p_syncDeployment /home/goby/k8s-bin/kube-controller-manager:0x2794c0&quot; &gt;&gt; /sys/kernel/debug/tracing/uprobe_events</span><br></pre></td></tr></table></figure>
+<p>We can check the debugfs, which auto-generated once the probe setupped:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">root@debian7:/sys/kernel/debug/tracing# tree events/uprobes/</span><br><span class="line">events/uprobes/</span><br><span class="line">├── enable</span><br><span class="line">├── filter</span><br><span class="line">└── p_syncDeployment</span><br><span class="line">    ├── enable</span><br><span class="line">    ├── filter</span><br><span class="line">    ├── format</span><br><span class="line">    ├── id</span><br><span class="line">    └── trigger</span><br></pre></td></tr></table></figure>
+<p>OK, everything is ok, let’s fly:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 1 &gt; /sys/kernel/debug/tracing/events/uprobes/enable</span><br></pre></td></tr></table></figure>
+<h3 id="Trace-Result"><a href="#Trace-Result" class="headerlink" title="Trace Result"></a>Trace Result</h3><p>Once the application call target function. We can get result from <code>/sys/kernel/debug/tracing/trace</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cat /sys/kernel/debug/tracing/trace</span><br><span class="line"></span><br><span class="line"># tracer: nop</span><br><span class="line">#</span><br><span class="line"># entries-in-buffer/entries-written: 398/398   #P:4</span><br><span class="line">#</span><br><span class="line">#                              _-----=&gt; irqs-off</span><br><span class="line">#                             / _----=&gt; need-resched</span><br><span class="line">#                            | / _---=&gt; hardirq/softirq</span><br><span class="line">#                            || / _--=&gt; preempt-depth</span><br><span class="line">#                            ||| /     delay</span><br><span class="line">#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION</span><br><span class="line">#              | |       |   ||||       |         |</span><br><span class="line"> kube-controller-26269 [000] d... 8212014.640986: p_syncDeployment: (0x6794c0) arg1=0xc421101d48 arg2=0xd</span><br><span class="line"> kube-controller-26266 [003] d... 8212014.641009: p_syncDeployment: (0x6794c0) arg1=0xc420cf7d48 arg2=0x11</span><br><span class="line"> kube-controller-26267 [002] d... 8212014.641105: p_syncDeployment: (0x6794c0) arg1=0xc4212a1d48 arg2=0x11</span><br><span class="line"> kube-controller-26268 [001] d... 8212014.641547: p_syncDeployment: (0x6794c0) arg1=0xc421239d48 arg2=0xf</span><br></pre></td></tr></table></figure>
+<p>This result shows who called the function, which cpu run, when called, and the argument we requested.<br>We can parse this file by a script to get function called frequency, get function latency with a return<br>probe.</p>
+<h3 id="Further-doing"><a href="#Further-doing" class="headerlink" title="Further doing"></a>Further doing</h3><p>These procedures are too complicated to do. To trace one function maybe ok, but 10? 100? Yes, we can choose<br>some newer tools if the kernel is newer enough. <a href="https://github.com/iovisor/bcc" target="_blank" rel="noopener">bcc</a> is a nice tool to do<br>such dirty things.</p>
+<p>For example,</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@debian7:/usr/share/bcc/tools# ./funccount -p `pidof kube-controller-manager` &quot;/home/goby/k8s-bin/kube-controller-manager:*syncD*&quot;</span><br><span class="line">Tracing 7 functions for &quot;/home/goby/k8s-bin/kube-controller-manager:*syncD*&quot;... Hit Ctrl-C to end.</span><br><span class="line">^C</span><br><span class="line">FUNC                                    COUNT</span><br><span class="line">k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeployment        6</span><br><span class="line">k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeploymentStatus        6</span><br><span class="line">k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).(k8s.io/kubernetes/pkg/controller/deployment.syncDeployment)-fm        6</span><br><span class="line">k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeployment.func1        6</span><br><span class="line">Detaching...</span><br></pre></td></tr></table></figure>
+<p>And the bcc created probes for us:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@debian7:/sys/kernel/debug/tracing# cat uprobe_events</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x2729b0_bcc_30466 /home/goby/k8s-bin/kube-controller-manager:0x00000000002729b0</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x2729b0_bcc_30551 /home/goby/k8s-bin/kube-controller-manager:0x00000000002729b0</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x274be0_bcc_30551 /home/goby/k8s-bin/kube-controller-manager:0x0000000000274be0</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x275430_bcc_30551 /home/goby/k8s-bin/kube-controller-manager:0x0000000000275430</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x2794c0_bcc_30551 /home/goby/k8s-bin/kube-controller-manager:0x00000000002794c0</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x27b5b0_bcc_30551 /home/goby/k8s-bin/kube-controller-manager:0x000000000027b5b0</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x282b20_bcc_30551 /home/goby/k8s-bin/kube-controller-manager:0x0000000000282b20</span><br><span class="line">p:uprobes/p__home_goby_k8s_bin_kube_controller_manager_0x282e00_bcc_30551 /home/goby/k8s-bin/kube-controller-manager:0x0000000000282e00</span><br></pre></td></tr></table></figure></p>
+<h2 id="BUG"><a href="#BUG" class="headerlink" title="BUG"></a>BUG</h2><p>Uretprobes is not very stable for golang program, if a return probe enabled and restart the<br>program, it will panic.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">runtime: unexpected return pc for k8s.io/kubernetes/pkg/controller/deployment.(*DeploymentController).syncDeployment called from 0x7fffffffe000</span><br><span class="line">fatal error: unknown caller pc</span><br></pre></td></tr></table></figure>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/">go</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/performance-tuning/">performance tuning</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/trace/">trace</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/uprobe/">uprobe</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2017/dig-ssh-tunnel/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">ssh 隧道挖掘艺术</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/Hello-World/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Hello World</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>Setup Virtual hexo With SaaS stack | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="">
+    <meta name="description" content="使用开源软件服务栈搭建可视化博客，换言之，就是尽量用免费的 SaaS 服务，搭建可视化的完全掌控的博客站点。 这个想法有点奇怪对不对？ 如果想要用， WordPress 不就可以吗？ 好了，我的想法就是，用 GitHub Page 托管网站。其次，就是能够支持在线编辑。前者很早就实现了，后者是我最近这段时间两台笔记本都坏了无法修复的情况下，用蓝牙键盘 ＋ 锤子手机蛋疼想出来的。 因为蓝牙键盘没有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Setup Virtual hexo With SaaS stack">
+<meta property="og:url" content="https://blog.gobyoung.com/2017/setup-virtual-hexo-with-saas-stack/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="使用开源软件服务栈搭建可视化博客，换言之，就是尽量用免费的 SaaS 服务，搭建可视化的完全掌控的博客站点。 这个想法有点奇怪对不对？ 如果想要用， WordPress 不就可以吗？ 好了，我的想法就是，用 GitHub Page 托管网站。其次，就是能够支持在线编辑。前者很早就实现了，后者是我最近这段时间两台笔记本都坏了无法修复的情况下，用蓝牙键盘 ＋ 锤子手机蛋疼想出来的。 因为蓝牙键盘没有">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Setup Virtual hexo With SaaS stack">
+<meta name="twitter:description" content="使用开源软件服务栈搭建可视化博客，换言之，就是尽量用免费的 SaaS 服务，搭建可视化的完全掌控的博客站点。 这个想法有点奇怪对不对？ 如果想要用， WordPress 不就可以吗？ 好了，我的想法就是，用 GitHub Page 托管网站。其次，就是能够支持在线编辑。前者很早就实现了，后者是我最近这段时间两台笔记本都坏了无法修复的情况下，用蓝牙键盘 ＋ 锤子手机蛋疼想出来的。 因为蓝牙键盘没有">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Setup Virtual hexo With SaaS stack</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Setup Virtual hexo With SaaS stack</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-09-24T05:50:25.000Z" itemprop="datePublished" class="page-time">
+  2017-09-24
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+<article id="post-setup-virtual-hexo-with-saas-stack"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">Setup Virtual hexo With SaaS stack</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-09-24 13:50:25" datetime="2017-09-24T05:50:25.000Z"  itemprop="datePublished">2017-09-24</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>使用开源软件服务栈搭建可视化博客，换言之，就是尽量用免费的 SaaS 服务，搭建可视化的完全掌控的博客站点。 这个想法有点奇怪对不对？ 如果想要用， WordPress 不就可以吗？</p>
+<p>好了，我的想法就是，用 GitHub Page 托管网站。其次，就是能够支持在线编辑。前者很早就实现了，后者是我最近这段时间两台笔记本都坏了无法修复的情况下，用蓝牙键盘 ＋ 锤子手机蛋疼想出来的。</p>
+<p>因为蓝牙键盘没有 Esc 键，以及自己手机里搞一套 nodejs 会不会太蛋疼了。所以就有了这个想法。</p>
+<p>基本的博客框架，就是 <a href="https://hexo.io" target="_blank" rel="noopener">hexo</a>。我最早用的是 <a href="https://hyde.github.io" target="_blank" rel="noopener">hyde</a>，但 hyde 的更新很慢，而且文档缺失，自己写插件实在蛋疼。后来发现 hexo 最近很流行，重点是，插件很多，想要随时拿，所以就转到 hexo 来了。转得很顺利，因为刚开始不懂，刚转为 hexo 想自己写主题，看了半天的 API 文档，不知所以然，毕竟对前端不熟。然后网上一搜，就找很到很多资料了。</p>
+<p>OK，另外一个呢，是编辑器的支持。还好找到 <a href="https://github.com/tajpure/hexo-editor" target="_blank" rel="noopener">hexo-editor</a> 这款开源软件。那思路就很简单了。刚开始我只是想给它加一个 Image Paste and Upload 的功能，这样就可以随时截图随时贴了。写完，突然想起，我又不想在自己的开发机上做这些和私人的东西，于是就想用随便一个 App Engine 来搭建这个 editor 了。然后脑子里第一个想到就是 heroku!!!</p>
+<p>所以，大体的思路如下：</p>
+<ul>
+<li>在 heroku 上创建 nodejs 的 App，并部署 hexo-editor 的代码</li>
+<li>给 hexo-editor 添加 git 的功能，部署时，自动拉取博客的 hexo 源码</li>
+<li>在主界面，添加 Push &amp; Pull 的功能，能够将我们创建的 md 文件<br>push 到 github</li>
+<li>利用和 travis 相同的想法，用 aes 加密 deployment key，在应用启动的时候加入 ssh-agent，后续拉取和部署代码用这个 key</li>
+<li>部署到 github 之后，由 travis 拉去更新，进行编译和生成静态代码，再部署到 github 上的 page repo</li>
+<li>这样就完成了整个过程了</li>
+</ul>
+<p>本来写了一大堆的，因为 session 太短了（一个小时，没有保存），过期重新登陆，缓存没了，干。所以索性把 cookie expiration 设置为 几个月。然后页面插一段 js 代码自动 ping 服务器，这样就能安全地写了。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2017/Test image upload/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Test image upload</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/dig-ssh-tunnel/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">ssh 隧道挖掘艺术</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

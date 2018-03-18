@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>一步一步写GIS库 5.SQLite的封装 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tutorial">
+    <meta name="description" content="面试蘑菇街就跪在SQLite的题目上╮(╯▽╰)╭ SQLite就不介绍了。IO操作就分成Reader和Writer，所以先设计StatementReader、 StatementWriter两个类： ::C++ class StatementReader { protected:     void init(sqlite3 *db,const char *,bool justRun=false)">
+<meta name="keywords" content="GIS, tutorial">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一步一步写GIS库 5.SQLite的封装">
+<meta property="og:url" content="https://blog.gobyoung.com/2013/write-gis-lib-5/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="面试蘑菇街就跪在SQLite的题目上╮(╯▽╰)╭ SQLite就不介绍了。IO操作就分成Reader和Writer，所以先设计StatementReader、 StatementWriter两个类： ::C++ class StatementReader { protected:     void init(sqlite3 *db,const char *,bool justRun=false)">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一步一步写GIS库 5.SQLite的封装">
+<meta name="twitter:description" content="面试蘑菇街就跪在SQLite的题目上╮(╯▽╰)╭ SQLite就不介绍了。IO操作就分成Reader和Writer，所以先设计StatementReader、 StatementWriter两个类： ::C++ class StatementReader { protected:     void init(sqlite3 *db,const char *,bool justRun=false)">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">一步一步写GIS库 5.SQLite的封装</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">一步一步写GIS库 5.SQLite的封装</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2013-11-29T16:00:00.000Z" itemprop="datePublished" class="page-time">
+  2013-11-29
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+<article id="post-write-gis-lib-5"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">一步一步写GIS库 5.SQLite的封装</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2013-11-30 00:00:00" datetime="2013-11-29T16:00:00.000Z"  itemprop="datePublished">2013-11-30</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p><del>面试蘑菇街就跪在SQLite的题目上╮(╯▽╰)╭</del></p>
+<p>SQLite就不介绍了。IO操作就分成Reader和Writer，所以先设计<code>StatementReader</code>、 <code>StatementWriter</code>两个类：</p>
+<pre><code>::C++
+class StatementReader {
+protected:
+    void init(sqlite3 *db,const char *,bool justRun=false);
+
+    bool valid;
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    bool isFinalized;
+    int curField;
+};
+
+class StatementWriter {
+protected:
+    void init(sqlite3 *db,const char *);
+
+    sqlite3_stmt *stmt;
+    bool isFinalized;
+    int curField;
+};
+</code></pre><p>操纵的五种基本类型 int/double/string/bool/blob，所以这两个的类基本的方法就包含获取数据和添加数据。</p>
+<pre><code>::C++
+struct Blob{
+        char *data;
+        size_t length;
+        Blob(const char *data, size_t len){
+            data = new char[len];
+            memcpy(this-&gt;data, data, len);
+        }
+
+        ~Blob(){delete []data; data = NULL;}
+    };
+
+    /**
+     * Encapsulates a SQLite3 statement in a way that does not make me
+     * want to punch someone.
+     **/
+    class StatementReader
+    {
+    public:
+        /// Construct with the statement and maybe just run the damn thing
+        StatementReader(sqlite3 *db,const char *,bool justRun=false);
+        /// Destructor will call finalize
+        ~StatementReader();
+
+        /// Returns false if initialization failed
+        bool isValid();
+
+        /// Calls step, expecting a row.
+        /// Returns false if we&apos;re done, throws an exception on error
+        bool stepRow();
+
+        /// You can force a finalize here
+        void finalize();
+
+        /// Return an int from the current row
+        int getInt();
+        /// Return a double from the current row
+        double getDouble();
+        /// Return an std::string from the current row
+        std::string *getString();
+        /// Return a boolean from the current row
+        bool getBool();
+        /// Return a blob from the current row
+        Blob *getBlob();
+
+    protected:
+        void init(sqlite3 *db,const char *,bool justRun=false);
+
+        bool valid;
+        sqlite3 *db;
+        sqlite3_stmt *stmt;
+        bool isFinalized;
+        int curField;
+    };
+
+    class StatementWriter
+    {
+    public:
+        StatementWriter(sqlite3 *db,const char *);
+        ~StatementWriter();
+
+        /// Run the insert/update.
+        /// Triggers an exception on failure
+        void go();
+
+        /// Finalize it (optional)
+        void finalize();
+
+        /// Add an integer
+        void add(int);
+        /// Add a double
+        void add(double);
+        /// Add a string
+        void add(const std::string&amp;);
+        /// Add a boolean
+        void add(bool);
+
+    protected:
+        void init(sqlite3 *db,const char *);
+
+        sqlite3_stmt *stmt;
+        bool isFinalized;
+        int curField;
+    }; 
+    ///
+    /// sql.cpp
+    ///
+    // Constructor for the read statement
+    StatementReader::StatementReader(sqlite3 *db,const char *stmtStr,bool justRun) {
+        init(db,stmtStr,justRun);
+    }
+
+    void StatementReader::init(sqlite3 *db,const char *stmtStr,bool justRun) {
+        valid = false;
+        if (!stmtStr)
+            return;
+
+        this-&gt;db = db;
+        stmt = NULL;
+        isFinalized = false;
+        curField = 0;
+
+        if (sqlite3_prepare_v2(db,stmtStr,-1,&amp;stmt,NULL) != SQLITE_OK)
+            return;
+
+        if (justRun)
+            stepRow();
+
+        valid = true;
+    }
+
+
+    // Clean up statement
+    StatementReader::~StatementReader() {
+        finalize();
+    }
+
+    bool StatementReader::isValid() {
+        return valid;
+    }
+
+    // Step
+    bool StatementReader::stepRow() {
+        if (isFinalized || !stmt || !valid)
+            return false;
+
+        curField = 0;
+
+        int ret = sqlite3_step(stmt);
+        if (ret == SQLITE_ROW)
+            return true;
+        if (ret == SQLITE_DONE)
+            return false;
+
+        throw 1;
+    }
+
+    // Done with the statement
+    void StatementReader::finalize() {
+        if (!isFinalized &amp;&amp; valid) {
+            sqlite3_finalize(stmt);
+            isFinalized = true;
+            stmt = NULL;
+        }
+    }
+
+    // Return int from the current row
+    int StatementReader::getInt() {
+        if (isFinalized)
+            throw 1;
+
+        return sqlite3_column_int(stmt, curField++);
+    }
+
+    // Return double from the current row
+    double StatementReader::getDouble() {
+        if (isFinalized)
+            throw 1;
+
+        return sqlite3_column_double(stmt, curField++);
+    }
+
+    // TODO: May leak resource
+    std::string *StatementReader::getString() {
+        if (isFinalized)
+            throw 1;
+
+        const char *str = (const char *)sqlite3_column_text(stmt, curField++);
+        if (!str)
+            return NULL;
+        else
+            return new std::string(str);
+    }
+
+    // Return a bool from the current row
+    bool StatementReader::getBool() {
+        if (isFinalized)
+            throw 1;
+
+        const char *str = (const char *)sqlite3_column_text(stmt, curField++);
+
+        if (!strcmp(str,&quot;yes&quot;))
+            return true;
+        else
+            return false;
+    }
+
+    Blob* StatementReader::getBlob() {
+        if (isFinalized)
+            throw 1;
+
+        const char *blob = (const char *)sqlite3_column_blob(stmt, curField);
+        int blobSize = sqlite3_column_bytes(stmt,curField);
+        curField++;
+        Blob *ret = new Blob(blob, blobSize);
+        return ret;
+    }
+
+    // Construct a write statement
+    StatementWriter::StatementWriter(sqlite3 *db,const char *stmtStr) {
+        init(db,stmtStr);
+    }
+
+    void StatementWriter::init(sqlite3 *db,const char *stmtStr) {
+        isFinalized = false;
+        if (sqlite3_prepare_v2(db,stmtStr,-1,&amp;stmt,NULL) != SQLITE_OK)
+            throw 1;
+
+        curField = 1;
+    }
+
+    // Destroy a write statement
+    StatementWriter::~StatementWriter() {
+        finalize();
+    }
+
+    // Run the statement
+    void StatementWriter::go() {
+        if (isFinalized)
+            throw 1;
+
+        if (sqlite3_step(stmt) != SQLITE_DONE)
+            throw 1;
+    }
+
+    // Finalize the statement
+    void StatementWriter::finalize() {
+        if (!isFinalized) {
+            sqlite3_finalize(stmt);
+            isFinalized = true;
+            stmt = NULL;
+        }
+    }
+
+    // Add an integer to the row data
+    void StatementWriter::add(int iVal) {
+        if (isFinalized) throw 1;
+
+        sqlite3_bind_int(stmt,curField++,iVal);
+    }
+
+    // Add a double to the row data
+    void StatementWriter::add(double dVal) {
+        if (isFinalized)  throw 1;
+
+        sqlite3_bind_double(stmt,curField++,dVal);
+    }
+
+    // Add a string to the row data
+    void StatementWriter::add(const std::string&amp; str) {
+        const char *strData = str.c_str();
+        sqlite3_bind_text(stmt, curField++, strData, -1, SQLITE_STATIC);
+    }
+
+    // Add a bool to the row data
+    void StatementWriter::add(bool bVal)  {
+        if (isFinalized) throw 1;
+
+        sqlite3_bind_text(stmt, curField++, (bVal ? &quot;yes&quot; : &quot;no&quot;), -1, SQLITE_STATIC);
+    }
+</code></pre><p>现在再回忆第一篇说的几何结构，现在让我们重新写好这个几何结构：</p>
+<pre><code>::C++
+typedef std::vector&lt;Point2f&gt; Ring;
+typedef std::set&lt;std::string&gt; StringSet;
+
+class Geometry : public Identifiable {
+public:
+    virtual Mbr getMbr() = 0;
+protected:
+    Geometry();
+    virtual ~Geometry();
+};
+
+class MultiPoints: public Geometry {
+public:
+    static std::shared_ptr&lt;MultiPoints&gt; createPoints();
+    ~MultiPoints();
+    virtual Mbr getMbr();
+    Ring points;
+protected:
+    MultiPoints();
+};
+
+class Polyline : public Geometry {
+public:
+    static std::shared_ptr&lt;Polyline&gt; createPolyline();
+    ~Polyline();
+    virtual Mbr getMbr();
+    void subdivide(float tolerance);
+    float getLength();
+    Ring points;
+protected:
+    Polyline();
+};
+
+class Polygon : public Geometry {
+public:
+    static std::shared_ptr&lt;Polygon&gt; createPolygon();
+    ~Polygon();
+    virtual Mbr getMbr();
+    void subdivide(float tolerance);
+    float getArea();
+    std::vector&lt;Ring&gt; loops;
+protected:
+    Polygon();
+};
+
+class GeometryReader {
+{
+public:
+    GeometryReader() { }
+    virtual ~GeometryReader() { }
+
+    /// Return false if we failed to load
+    virtual bool isValid() = 0;
+
+    /// Returns one of the vector types.
+    /// Keep enough state to figure out what the next one is.
+    /// You can skip any attributes not named in the filter.  Or just ignore it.
+    virtual std::shared_ptr&lt;Geometry&gt; getNextObject(const StringSet *filter) = 0;
+
+    /// Return true if this vector reader can seek and read
+    virtual bool canReadByIndex() { return false; }
+
+    /// Return the total number of vectors objects
+    virtual unsigned int getNumObjects() { return 0; }
+
+    /// Return an object that corresponds to the given index.
+    /// You need to be able to seek in your file format for this.
+    /// The filter works the same as for getNextObect()
+    virtual std::shared_ptr&lt;Geometry&gt; getObjectByIndex(unsigned int vecIndex,const StringSet *filter)  { return std::shared_ptr&lt;Geometry&gt;(); }
+};
+</code></pre><p>接下来就是存储的地方：数据库了——GeometryDatabase。<br>数据库需要存储位置、存储文件的名称、数据读取器等</p>
+<pre><code>::C++
+typedef std::set&lt;unsigned int&gt; UIntSet;
+typedef std::shared_ptr&lt;Geometry&gt; GeometryRef;
+
+class GeometryDatabase
+{
+public:
+    GeometryDatabase(const char *bundleDir,const char *cacheDir,const char *baseName,GeometryReader *reader,const std::set&lt;std::string&gt; *indices,bool cache=false,bool autoload=false);
+    ~GeometryDatabase();
+
+    void setAutoload(bool autoload);
+    void setMemCache(bool memCache);
+    void process();
+    unsigned int numGeometries();
+    Mbr getMbr(unsigned int);
+
+    std::shared_ptr&lt;Geometry&gt; getVector(unsigned int,bool withAttributes=true);
+    void queryGeometries(const Mbr &amp;mbr,UIntSet &amp;vecIds);
+    void queryGeometries(const char *query,UIntSet &amp;vecIds);
+    void queryGeometries(const char *query,ShapeSet &amp;shapes);
+
+    void findArealsForPoint(const GeoCoord &amp;coord,ShapeSet &amp;shapes);
+
+    sqlite3 *getSqliteDb();
+
+protected:
+    bool buildCaches(const char *mbrCache, const char *sqlDb);
+    bool readCaches(const char *mbrCache, const char *sqlDb);
+
+    GeometryReader *reader;
+
+    std::vector&lt;Mbr&gt; mbrs;
+
+    /// If we&apos;re caching in memory, this is the cache
+    bool vecCacheOn;
+    std::map&lt;unsigned int, GeometryRef&gt; vecCache;
+
+    /// If we&apos;re slowly loading data in, this is how we keep track
+    bool autoloadOn;
+    int autoloadWhere;
+
+    /// Open SQLite database
+    sqlite3 *db;
+};
+</code></pre>
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tutorial/">tutorial</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2013/write-gis-lib-4/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">一步一步写GIS库 4.OpenGL ES 2 的封装</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2013/pat-in-2013-fall/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">2013冬PAT</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

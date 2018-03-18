@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>pipe(7) 原理与实现 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="">
+    <meta name="description" content="title: pipe(7) 原理与实现date: 2017-08-09 09:07:41 tags:pipe(7) 在我们日常工作中经常碰到，能够串联 Linux &amp;amp; Unix 下各种工具的输入输出，组成一个动态的功能强大的数据处理流，是 Unix 设计哲学的一种体现。最近一次对其进行关注是因为微信群里有人说 pipe 操作会完成 4 次内存拷贝。所以究其原因或者说明对错，就展开一段考究">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pipe(7) 原理与实现">
+<meta property="og:url" content="https://blog.gobyoung.com/2017/how-linux-implements-pipe/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="title: pipe(7) 原理与实现date: 2017-08-09 09:07:41 tags:pipe(7) 在我们日常工作中经常碰到，能够串联 Linux &amp;amp; Unix 下各种工具的输入输出，组成一个动态的功能强大的数据处理流，是 Unix 设计哲学的一种体现。最近一次对其进行关注是因为微信群里有人说 pipe 操作会完成 4 次内存拷贝。所以究其原因或者说明对错，就展开一段考究">
+<meta property="og:image" content="http://doc.cat-v.org/unix/pipes/pipe.png">
+<meta property="og:image" content="https://www.blogcdn.com/www.tuaw.com/media/2012/12/automator.png">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="pipe(7) 原理与实现">
+<meta name="twitter:description" content="title: pipe(7) 原理与实现date: 2017-08-09 09:07:41 tags:pipe(7) 在我们日常工作中经常碰到，能够串联 Linux &amp;amp; Unix 下各种工具的输入输出，组成一个动态的功能强大的数据处理流，是 Unix 设计哲学的一种体现。最近一次对其进行关注是因为微信群里有人说 pipe 操作会完成 4 次内存拷贝。所以究其原因或者说明对错，就展开一段考究">
+<meta name="twitter:image" content="http://doc.cat-v.org/unix/pipes/pipe.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">pipe(7) 原理与实现</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">pipe(7) 原理与实现</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-08-09T01:07:41.000Z" itemprop="datePublished" class="page-time">
+  2017-08-09
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#tags"><span class="post-toc-number">1.</span> <span class="post-toc-text">tags:</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Unix-Pipe-起源"><span class="post-toc-number">2.</span> <span class="post-toc-text">Unix Pipe 起源</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#pipeline-想法的萌发"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">pipeline 想法的萌发</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Unix-Pipe-与-标记"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">Unix Pipe 与 | 标记</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Linux-pipe-的设计实现"><span class="post-toc-number">3.</span> <span class="post-toc-text">Linux pipe 的设计实现</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Virtual-File-System"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">Virtual File System</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-how-linux-implements-pipe"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">pipe(7) 原理与实现</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-08-09 09:07:41" datetime="2017-08-09T01:07:41.000Z"  itemprop="datePublished">2017-08-09</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>title: pipe(7) 原理与实现<br>date: 2017-08-09 09:07:41</p>
+<h2 id="tags"><a href="#tags" class="headerlink" title="tags:"></a>tags:</h2><p>pipe(7) 在我们日常工作中经常碰到，能够串联 Linux &amp; Unix 下各种工具的输入输出，组成一个动态的功能强大的数据处理流，是 Unix 设计哲学的一种体现。最近一次对其进行关注是因为微信群里有人说 pipe 操作会完成 4 次内存拷贝。所以究其原因或者说明对错，就展开一段考究之旅，了解 pipe 发明以前近 50 年的变化（是的，就是这么古老，比 Unix 还古老）和顺便学习 vfs 相应的知识。</p>
+<h2 id="Unix-Pipe-起源"><a href="#Unix-Pipe-起源" class="headerlink" title="Unix Pipe 起源"></a>Unix Pipe 起源</h2><h3 id="pipeline-想法的萌发"><a href="#pipeline-想法的萌发" class="headerlink" title="pipeline 想法的萌发"></a>pipeline 想法的萌发</h3><p>根据<a href="https://en.wikipedia.org/wiki/Pipeline_(Unix)" title="Pipelin Origin of Unix Pipes" target="_blank" rel="noopener">维基百科</a>和 [/sys/doc/][2]的说明，Unix 的 Pipeline 概念最初由 <a href="http://genius.cat-v.org/doug-mcilroy/" target="_blank" rel="noopener">Doug McIlroy</a> 发明。 当时， McIlroy 认为，从一个程序输出到文件，再输入另一个程序非常耗时。互联网总是那么神奇，保存了当时 pipeline 的初衷：</p>
+<blockquote>
+<p>- 10 -</p>
+<p> Summary–what’s most important.</p>
+<p>   To put my strongest concerns into a nutshell:</p>
+<ol>
+<li>We should have some ways of coupling programs like<br>garden hose–screw in another segment when it becomes when<br>it becomes necessary to massage data in another way.<br>This is the way of IO also.</li>
+<li>Our loader should be able to do link-loading and<br>controlled establishment.</li>
+<li>Our library filing scheme should allow for rather<br>general indexing, responsibility, generations, data path<br>switching.</li>
+<li>It should be possible to get private system components<br>(all routines are system components) for buggering around with.</li>
+</ol>
+<p>M. D. McIlroy</p>
+<p>October 11, 1964 </p>
+</blockquote>
+<p><img src="http://doc.cat-v.org/unix/pipes/pipe.png" alt="The Origin of Unix Pipes"></p>
+<p>McIlory 认为当时一个最重要的事就是找到一种类似花园浇水软管的方式，组合不同程序的输入输出，就像一条信息流一样。</p>
+<h3 id="Unix-Pipe-与-标记"><a href="#Unix-Pipe-与-标记" class="headerlink" title="Unix Pipe 与 | 标记"></a>Unix Pipe 与 <code>|</code> 标记</h3><p>在 19 年后的 1973 年，当 <a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank" rel="noopener">Ken Thompson</a> 在 Research Unix 第三版中引入 <code>pipe()</code> 系统调用的时候，MiIlroy 非常兴奋:</p>
+<blockquote>
+<p>“… in one feverish night … The next day, saw an unforgettable orgy of one-liners as everybody joined in the excitement of plumbing”</p>
+</blockquote>
+<p>不过当时 pipeline 并不是 Unix 独有的，在 Dartmouth Time-Sharing System 中也有 “communication files” 的概念。</p>
+<p>在 <a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank" rel="noopener">Dennis Ritchie</a> (他老人家也在 2011 年 10 月 12 日去世去世，那一周乔布斯也去世了，世界媒体和人们对两者的关注度天差地别，不过这是另外一个话题了，许多年后的今天有时我们还能看到有人试图去比较批判人们对两个人的态度) 老先生的 <a href="https://www.bell-labs.com/usr/dmr/www/hist.html" target="_blank" rel="noopener">“The Evolution of the Unix Time-sharing System”</a> 论文中的描述，McIlroy 的想法是，在程序的前后，表明输入输出，例如 <code>copy</code> 指令：</p>
+<pre><code>inputfile copy outputfile
+</code></pre><p>为了更直观表示 pipeline， 不同命令可以组合起来。因此例如 <code>sort</code> 一个 <code>input</code> 文件，然后由 <code>paginate</code> 进行分页，最后用 <code>print</code> 打印结果，可以表示为：</p>
+<pre><code>input sort paginate print
+</code></pre><p>对应的如今的表示为：</p>
+<pre><code>sort input | pr | opr
+</code></pre><p>他说，这个想法，在当时某个下午写在黑板上，然而并没有立即行动起来。当时有几个问题亟待解决：</p>
+<ol>
+<li>插入文件的符号太过怪异了，因为我们通常用 <code>cp x y</code>  表示拷贝 <code>x</code> 到 <code>y</code></li>
+<li>同时也没办法区分到时是命令参数还是输入文件还是输出文件; </li>
+<li>这种命令执行的 IO 模型看起来不实用</li>
+</ol>
+<p>最终，在 McIlroy 的坚持下， <code>pipe</code> 最终还是加到系统中，同时用一种新的符号表示， 和 IO 重定向使用同一种符号。例如，上面的那个例子表示为：</p>
+<pre><code>sort input &gt;pr&gt;opr&gt;
+</code></pre><p>类似重定向文件的思想，把 前一个命令的输出重定向到下一个命令上，当成下一个命令的输入。最后的 <code>&gt;</code> 在上面的例子是必须的因为最后表示输出到 Console，否则会当成重定向 <code>opr</code> 文件中。</p>
+<p>当时 pipeline 很快就让大家接受了，同样迸发出类似 <code>filter</code> 的词。很多命令都积极适配 pipeline。例如，当时没人能够想象有人要 <code>sort</code> <code>pr</code> 在没有参数下排序或者打印标准输入。</p>
+<p>然后，不久之后各种问题接踵而至。大部分都是愚蠢的语法问题，比如 <code>&gt;</code> 命令后的字符串用空格分隔，就像我们给 <code>pr</code> 加了参数，我们就必须加双引号：</p>
+<pre><code>sort input &gt;&quot;pr -2&quot;&gt;opr&gt;
+</code></pre><p>还有就是，我们尝试让这个标记更佳通用，例如 pipe 接受输入标记 <code>&lt;</code>，这意味着标记并不唯一。例如有人会写成：</p>
+<pre><code>oopr &lt;pr&lt;&quot;sort input&quot;&lt;
+</code></pre><p>甚至</p>
+<pre><code>pr &lt;&quot;sort input&quot;&lt; &gt;opr&gt;
+</code></pre><p>就这样，随着第三版的发布，这种表示法持续了几个月，Thompson 提出的<code>|</code> 在第四版横空出世。然而，即使 <code>|</code> 到如今依然延续着，但是它一个非常明显的缺点就是直愣愣地只能线性传递。例如，如何优雅比较两个命令的输出？如何优雅标记一个命令的两个并行输出？</p>
+<p>有意思的是， Ritchie 最后对“unix pipe 是 Multics 文件流拼接的延续” 的看法嗤之以鼻。当然，我并没有对 Multics 文件流拼接进行探讨，那已经是上古时代的东西了。但管道的出现，让命令本身语意用法不变的情况下组合起来形成复杂的程序。</p>
+<blockquote>
+<p>The mental leap needed to see this possibility and to invent the notation is large indeed.</p>
+</blockquote>
+<p><code>|</code> 这个符号表示管道，由于非常形象生动，这个表示延续至今，并移植到非常多的操作系统中，例如 DOS, OS/2, Microsoft Windows, BeOS 等。甚至， Mac OS(X) 中的 Automator 的图标也是向这个发明致敬。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://www.blogcdn.com/www.tuaw.com/media/2012/12/automator.png" alt="automator" title="">
+                </div>
+                <div class="image-caption">automator</div>
+            </figure>
+<p>另外在 <a href="https://en.wikipedia.org/wiki/Communicating_sequential_processes" target="_blank" rel="noopener">communicating sequential processes</a> （我想有空，也想谈谈 CSP，特别是最近一年一直都在用 golang ）也受到最初的 McIlroy 的想法的影响。</p>
+<p>当然这个思想也形成软件工程中 <a href="https://en.wikipedia.org/wiki/Pipeline_(software" target="_blank" rel="noopener">“Pipe &amp; Filter Design Pattern”</a>).</p>
+<p>最后，不得不说一句，令人遗憾的是，根据 [Warren Toomey][] 的说法，他在 1999 年 1 月拿到 Dennis Ritchie 关于 Research Unix V3 的拷贝 ，但却没有完整地留存下来，而遗留下来的版本，如今放在<a href="http://www.tuhs.org/Archive/Distributions/Research/Dennis_v3/" target="_blank" rel="noopener">阿尔卡特朗讯</a>的网站上，却刚好遗失了 <code>pipe()</code> 相关的源码，实在令人扼腕（这不得不说起台湾清华大学的开放课程 <a href="http://ocw.nthu.edu.tw/ocw/index.php?page=course&amp;cid=3" target="_blank" rel="noopener">《科幻概论》</a> 的授课老师郑运鸿先生的话，大意是“这个科技时代吊诡的是想要保存的总会丢失，不想要的总是存在世界的某个角落”，这里借用下字面意思）</p>
+<blockquote>
+<p>In partijust got the ‘nsys’ kernel<br>to boot, so I have not had a chance to sit down and work out exactly what<br>functionality is missing.</p>
+<p><a href="http://www.tuhs.org/Archive/Distributions/Research/Dennis_v3/" target="_blank" rel="noopener">http://www.tuhs.org/Archive/Distributions/Research/Dennis_v3/</a></p>
+</blockquote>
+<p>同样， Research Unix V4 在 Dennis Ritchie 贡献出来的非常接近最终 Release Version 的<a href="http://minnie.tuhs.org/cgi-bin/utree.pl?file=V4" target="_blank" rel="noopener">版本</a>(下面的引用也来自这里)也缺少 <code>pipe</code>， 他说：</p>
+<blockquote>
+<p>This is a tar archive derived from a DECtape labelled “nsys”.<br>What is contains is just the kernel source, written in the pre-K&amp;R dialect of C.<br>It is intended only for PDP-11/45, and has setup and memory-handling code that will not work on other models (it’s missing things special to the later, smaller models, and the larger physical address space of the still later 11/70.)<br>It appears that it is intended to be loaded into memory at physical address 0, and transferred to at location 0.</p>
+</blockquote>
+<h2 id="Linux-pipe-的设计实现"><a href="#Linux-pipe-的设计实现" class="headerlink" title="Linux pipe 的设计实现"></a>Linux pipe 的设计实现</h2><p>好，考古之后，我们直接进入 Linux pipe(7) 的最新实现，总的来说，pipe 实现如下：</p>
+<ul>
+<li>在 vfs 中有一个 pipefs 模块，在内核启动的时候挂载进去</li>
+<li>pipefs 与其他文件系统不同，并不是挂载根目录 <code>/</code> 下，而是专门的根 <code>pipe:</code></li>
+<li>pipefs 无法像普通文件系统那样直接访问</li>
+<li>pipefs 的入口在 <code>pipe(2)</code> 系统调用</li>
+<li><code>pipe(2)</code> 在 pipefs 中创建一个文件，然后返回连个 fd，一个用于读一个用于写</li>
+<li>pipefs 是内存文件系统</li>
+</ul>
+<h3 id="Virtual-File-System"><a href="#Virtual-File-System" class="headerlink" title="Virtual File System"></a>Virtual File System</h3><p>// TODO</p>
+<p><a href="https://en.wikipedia.org/wiki/Pipeline_(Unix)" title="Pipelin Origin of Unix Pipes" target="_blank" rel="noopener">1</a>: <a href="https://en.wikipedia.org/wiki/Pipeline_e" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Pipeline_e</a> System</p>
+<p>首先我们从 VPS 讲起， VFS 即 <a href="https://en.wikipedia.org/wiki/Virtual_file_system" target="_blank" rel="noopener">Virtual File System</a>，简单来说，就是一个文件系统的抽象，<br>定义一定的接口将各种类型的文件系统的接口统一。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2017/Hello-World/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Hello World</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/distsys-basic/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">分布式系统理论基础摘要</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>一步一步写GIS库 2.使用的第三方库 | gobyoung | Walk deep in the sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- Chrome -->
+    <meta name="theme-color" content="#009688">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#009688">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <meta name="keywords" content="tutorial">
+    <meta name="description" content="上一篇说到了关于GIS的数据结构、组织和渲染的一些基本知识，这一篇就讲讲要实现这些需要用到得第三方库的情况。 空间数据模型的话如果不自己写可以使用GEOS，这个库暂时不用，我们将自己写一些简单的来实现基本的功能。并且为了保证日后能够将这个库融入到我们的代码中，可能需要参照它的一些写法。 接下来介绍使用到得库：  STL - 这个是C++中，因为涉及到很多容器算法，故而直接用STL OpenGL E">
+<meta name="keywords" content="GIS, zmaply">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一步一步写GIS库 2.使用的第三方库">
+<meta property="og:url" content="https://blog.gobyoung.com/2013/write-gis-lib-2/index.html">
+<meta property="og:site_name" content="gobyoung">
+<meta property="og:description" content="上一篇说到了关于GIS的数据结构、组织和渲染的一些基本知识，这一篇就讲讲要实现这些需要用到得第三方库的情况。 空间数据模型的话如果不自己写可以使用GEOS，这个库暂时不用，我们将自己写一些简单的来实现基本的功能。并且为了保证日后能够将这个库融入到我们的代码中，可能需要参照它的一些写法。 接下来介绍使用到得库：  STL - 这个是C++中，因为涉及到很多容器算法，故而直接用STL OpenGL E">
+<meta property="og:updated_time" content="2018-03-18T07:49:33.203Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一步一步写GIS库 2.使用的第三方库">
+<meta name="twitter:description" content="上一篇说到了关于GIS的数据结构、组织和渲染的一些基本知识，这一篇就讲讲要实现这些需要用到得第三方库的情况。 空间数据模型的话如果不自己写可以使用GEOS，这个库暂时不用，我们将自己写一些简单的来实现基本的功能。并且为了保证日后能够将这个库融入到我们的代码中，可能需要参照它的一些写法。 接下来介绍使用到得库：  STL - 这个是C++中，因为涉及到很多容器算法，故而直接用STL OpenGL E">
+    
+        <link rel="alternate" type="application/atom+xml" title="gobyoung" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.6.13">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/assets/img/atlas.min.png)">
+      <div class="brand">
+        
+        <hgroup class="introduce">
+          <h5 class="nickname">Tanglim LUA</h5>
+          <a href="mailto:goby#foxmail.com" title="goby#foxmail.com" class="mail">goby#foxmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="//gobyoung.com"  >
+                <i class="icon icon-lg icon-heart"></i>
+                The One
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/nanyu"  >
+                <i class="icon icon-lg icon-child"></i>
+                NanYu
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                Home
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/goby" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">一步一步写GIS库 2.使用的第三方库</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">一步一步写GIS库 2.使用的第三方库</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2013-11-29T16:00:00.000Z" itemprop="datePublished" class="page-time">
+  2013-11-29
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+<article id="post-write-gis-lib-2"
+  class="post-article article-type-post fade" itemprop="blogPost">
+    <div class="post-card">
+        <h1 class="post-card-title">一步一步写GIS库 2.使用的第三方库</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2013-11-30 00:00:00" datetime="2013-11-29T16:00:00.000Z"  itemprop="datePublished">2013-11-30</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>上一篇说到了关于GIS的数据结构、组织和渲染的一些基本知识，这一篇就讲讲要实现这些需要用到得第三方库的情况。</p>
+<p>空间数据模型的话如果不自己写可以使用<a href="http://trac.osgeo.org/geos/" target="_blank" rel="noopener">GEOS</a>，这个库暂时不用，我们将自己写一些简单的来实现基本的功能。并且为了保证日后能够将这个库融入到我们的代码中，可能需要参照它的一些写法。</p>
+<p>接下来介绍使用到得库：</p>
+<ol>
+<li><a href="http://www.sgi.com/tech/stl/" target="_blank" rel="noopener">STL</a> - 这个是C++中，因为涉及到很多容器算法，故而直接用STL</li>
+<li><a href="http://www.khronos.org/opengles/2_X/" target="_blank" rel="noopener">OpenGL ES 2</a> - 图形渲染方面使用OpenGL ES 2.0</li>
+<li><a href="http://www.sqlite.org/" target="_blank" rel="noopener">SQLite</a> - 移动设备中经常使用到的数据管理的数据库</li>
+<li><a href="https://code.google.com/p/glues/" target="_blank" rel="noopener">GLUES</a> - 关于GLU可以参照这个<a href="http://www.opengl.org/archives/resources/faq/technical/glu.htm" target="_blank" rel="noopener">FAQ</a>，简单来说就是给OpenGL添加一些额外的高级功能，GLUES就是GLU在嵌入式设备上得移植</li>
+<li><a href="http://shapelib.maptools.org/" target="_blank" rel="noopener">shapelib</a> - Shapefile 的 C 库，用来读写ESRI的Shapefile文件以及属性文件(.dbf)</li>
+<li><a href="http://trac.osgeo.org/proj/" target="_blank" rel="noopener">proj.4</a> - 地图变换的库，由USGS提供</li>
+<li><a href="http://sourceforge.net/projects/libjson/" target="_blank" rel="noopener">libjson</a> - JSON 的操作库</li>
+<li><a href="http://eigen.tuxfamily.org/" target="_blank" rel="noopener">Eigen</a> - C++模板库，提供线性代数相关的算法</li>
+<li><a href="http://www.angusj.com/delphi/clipper.php" target="_blank" rel="noopener">Clipper</a> - 多边形叠加切割的开源库</li>
+</ol>
+<p>基本上用到的就是以上8个开源的第三方库。除了STL是C++标准库和OpenGL ES 2在现代移动操作系统中支持之外，其他的没能完全支持，因此其他的库的代码需要添加到代码中。那么为什么要使用这些库呢？</p>
+<p>前三个很好理解，第四个GLUES可以提供包含二次曲面、透视变换、镶嵌操作、贴图混叠等功能，这些在地图显示中都比较重要。Shapelib库是为了对Shapefile的读写方便使用到得库，毕竟ESRI作为GIS行业的老大，需要支持它的开源标准。Proj.4 也比较好理解，在GIS中坐标系统、空间变换是重要的内容。libjson 即JSON的支持。Eigen 提供了线性代数相关的算法，包含矩阵运算、向量运算等，这些在计算图形面积、外包框等都很重要。Clipper 就是为了让叠加分析能够方便实现以及最后显示上面一些图形的叠加的方便实现。</p>
+<p>好了准备得差不多了，差不多可以准备开搞了。<br>我接下来使用的IDE环境是 XCode 4.5 ，为什么呢？只是为了方便消除前期代码中的一些语法语义错误而已。我介绍介绍我的使用环境：</p>
+<ol>
+<li>git 1.7.12.4</li>
+<li>XCode 4.5 with Command Tools</li>
+<li>没了</li>
+</ol>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+
+        
+        <footer>
+            <a href="https://blog.gobyoung.com">
+                <img src="/img/avatar.jpg" alt="Tanglim LUA">
+                Tanglim LUA
+            </a>
+        </footer>
+    </div>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tutorial/">tutorial</a></li></ul>
+
+
+            
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2013/write-gis-lib-1/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">一步一步写GIS库 1. 基本结构</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2013/write-gis-lib-3/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">一步一步写GIS库 3.开始工作，Geometry相关</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="bottom">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+        <p><span>Tanglim LUA &copy; 2015 - 2018</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: false, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.6.13"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.6.13" async></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>
